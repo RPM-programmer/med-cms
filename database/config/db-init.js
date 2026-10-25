@@ -1,12 +1,9 @@
-const { Sequelize } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const path = require('path');
-const Clinic = require(path.join(__dirname, '..', 'models', 'clinics'));
-const User = require(path.join(__dirname, '..', 'models', 'users'));
-const UserAddress = require(path.join(__dirname, '..', 'models', 'user-addresses'));
-const Disease = require(path.join(__dirname, '..', 'models', 'diseases'));
-const Appointment = require(path.join(__dirname, '..', 'models', 'appointments'));
 const logger = require("custom-color-logs").print;
+
 let sequelize;
+
 function getSequelizeInstance(dbPath) {
   if (!sequelize) {
     const storagePath = dbPath || path.join(process.cwd(), 'med-cms.sqlite');
@@ -18,27 +15,76 @@ function getSequelizeInstance(dbPath) {
   }
   return sequelize;
 }
+
 async function initDatabase(dbPath) {
   const instance = getSequelizeInstance(dbPath);
+  
   try {
     await instance.authenticate();
-    console.log(logger.DatabaseMedInfo("Успешное подключение к SQLite через Sequelize."))
-    User.belongsTo(Clinic, { foreignKey: 'ClinicId', onDelete: 'SET NULL' });
-    Clinic.hasMany(User, { foreignKey: 'ClinicId' });
-    UserAddress.belongsTo(User, { foreignKey: 'UserId', onDelete: 'CASCADE' });
-    User.hasOne(UserAddress, { foreignKey: 'UserId' });
-    Appointment.belongsTo(User, { as: 'Patient', foreignKey: 'PatientId', onDelete: 'CASCADE' });
-    Appointment.belongsTo(User, { as: 'Doctor', foreignKey: 'DoctorId', onDelete: 'CASCADE' });
-    Appointment.belongsTo(Disease, { foreignKey: 'DiseaseId', onDelete: 'SET NULL' });
+    console.log(logger.DatabaseMedInfo("Успешное подключение к SQLite через Sequelize."));
+
+    // 1. Импортируем функции моделей и сразу инициализируем их инстансом sequelize
+    const models = {
+      Clinic: require(path.join(__dirname, '..', 'models', 'clinics'))(instance, DataTypes),
+      User: require(path.join(__dirname, '..', 'models', 'users'))(instance, DataTypes),
+      UserAddress: require(path.join(__dirname, '..', 'models', 'user-addresses'))(instance, DataTypes),
+      Disease: require(path.join(__dirname, '..', 'models', 'diseases'))(instance, DataTypes),
+      Appointment: require(path.join(__dirname, '..', 'models', 'appointments'))(instance, DataTypes)
+    };
+
+    // 2. Автоматически запускаем связи, которые мы прописали внутри файлов таблиц
+    Object.keys(models).forEach((modelName) => {
+      if (models[modelName].associate) {
+        models[modelName].associate(models);
+      }
+    });
+
     await instance.sync({ alter: true });
-    console.log(logger.DatabaseMedInfo("Все таблицы базы данных успешно синхронизированы."))
+    console.log(logger.DatabaseMedInfo("Все таблицы базы данных успешно синхронизированы."));
   } catch (error) {
-    console.log(logger.DatabaseMedError('Ошибка инициализации базы данных:', error))
+    console.log(logger.DatabaseMedError('Ошибка инициализации базы данных:', error));
     throw error;
   }
 }
-module.exports = {
-  get sequelize() { return sequelize; },
+
+// В самом конце вашего database/config/db-init.js вместо старого exports:
+
+const db = {
   getSequelizeInstance,
-  initDatabase
+  initDatabase,
+  get sequelize() { return sequelize; },
+  // Динамически прокидываем модели наружу, чтобы они были доступны как db.User, db.Clinic и т.д.
+  models: {} 
 };
+
+// Перепишем функцию initDatabase, чтобы она сохраняла модели в db.models и самом объекте db
+async function initDatabase(dbPath) {
+  const instance = getSequelizeInstance(dbPath);
+  
+  try {
+    await instance.authenticate();
+    console.log(logger.DatabaseMedInfo("Успешное подключение к SQLite через Sequelize."));
+
+    // Инициализируем и сохраняем в объект
+    db.models.Clinic = db.Clinic = require(path.join(__dirname, '..', 'models', 'clinics'))(instance, DataTypes);
+    db.models.User = db.User = require(path.join(__dirname, '..', 'models', 'users'))(instance, DataTypes);
+    db.models.UserAddress = db.UserAddress = require(path.join(__dirname, '..', 'models', 'user-addresses'))(instance, DataTypes);
+    db.models.Disease = db.Disease = require(path.join(__dirname, '..', 'models', 'diseases'))(instance, DataTypes);
+    db.models.Appointment = db.Appointment = require(path.join(__dirname, '..', 'models', 'appointments'))(instance, DataTypes);
+
+    // Запускаем связи
+    Object.keys(db.models).forEach((modelName) => {
+      if (db.models[modelName].associate) {
+        db.models[modelName].associate(db.models);
+      }
+    });
+
+    await instance.sync({ alter: true });
+    console.log(logger.DatabaseMedInfo("Все таблицы базы данных успешно синхронизированы."));
+  } catch (error) {
+    console.log(logger.DatabaseMedError('Ошибка инициализации базы данных:', error));
+    throw error;
+  }
+}
+
+module.exports = db;

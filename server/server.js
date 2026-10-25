@@ -2,18 +2,26 @@ const express = require('express');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require(path.join(__dirname, '..', 'database', 'models', 'users'));
-const Disease = require(path.join(__dirname, '..', 'database', 'models', 'diseases'));
+
+// Импортируем проинициализированный объект базы со всеми готовыми моделями
+const db = require(path.join(__dirname, '..', 'database', 'config', 'db-init.js'));
+
 const createMiddleware = require(path.join(__dirname, 'midleware'));
 const { MED_PERMISSIONS } = require(path.join(__dirname, 'permissions'));
 const AdminService = require(path.join(__dirname, '..', 'database', 'services', 'admin'));
 const DoctorService = require(path.join(__dirname, '..', 'database', 'services', 'doctor'));
 const PatientService = require(path.join(__dirname, '..', 'database', 'services', 'patient'));
+
 function createMedRouter(jwtSecret) {
   const api = express.Router();
   const web = express.Router();
+  
+  // Достаем готовые к работе модели из объекта db
+  const { User, Disease, Clinic } = db;
+
   web.use("/", express.static(path.join(__dirname, "..", "public")));
   const { verifyCookie, requireRole, checkPermission } = createMiddleware(jwtSecret);
+
   api.post('/auth/register', async (req, res) => {
     try {
       const { email, password, fullName } = req.body;
@@ -27,6 +35,7 @@ function createMedRouter(jwtSecret) {
       res.status(400).json({ success: false, error: err.message });
     }
   });
+
   api.post('/auth/login', async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -50,13 +59,16 @@ function createMedRouter(jwtSecret) {
       res.status(500).json({ success: false, error: err.message });
     }
   });
+
   api.post('/auth/logout', (req, res) => {
     res.clearCookie('med_auth_token');
     res.json({ success: true, message: 'Успешный выход' });
   });
+
   web.get('/med-patient', verifyCookie, requireRole(['patient']), (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'html', 'dashboard-patient.html'));
   });
+
   api.get('/patient/me', verifyCookie, async (req, res) => {
     try {
       const fullData = await PatientService.getFullMyData(req.user.id);
@@ -65,6 +77,7 @@ function createMedRouter(jwtSecret) {
       res.status(500).json({ success: false, error: err.message });
     }
   });
+
   api.post('/patient/address', verifyCookie, async (req, res) => {
     try {
       const updatedAddress = await PatientService.savePatientAddress(req.user.id, req.body);
@@ -73,9 +86,11 @@ function createMedRouter(jwtSecret) {
       res.status(400).json({ success: false, error: err.message });
     }
   });
+
   web.get('/med-doctor', verifyCookie, requireRole(['doctor']), (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'html', 'dashboard-doctor.html'));
   });
+
   api.get('/doctor/schedule', verifyCookie, requireRole(['doctor']), async (req, res) => {
     try {
       const schedule = await DoctorService.getMySchedule(req.user.id);
@@ -84,6 +99,7 @@ function createMedRouter(jwtSecret) {
       res.status(500).json({ success: false, error: err.message });
     }
   });
+
   api.get('/doctor/patient-history/:id', verifyCookie, requireRole(['doctor']), async (req, res) => {
     try {
       const history = await DoctorService.getPatientHistory(req.params.id);
@@ -92,6 +108,7 @@ function createMedRouter(jwtSecret) {
       res.status(404).json({ success: false, error: err.message });
     }
   });
+
   api.post('/doctor/complete-examination', verifyCookie, requireRole(['doctor']), async (req, res) => {
     try {
       const result = await DoctorService.saveExamination(req.body);
@@ -100,12 +117,15 @@ function createMedRouter(jwtSecret) {
       res.status(400).json({ success: false, error: err.message });
     }
   });
+
   api.post('/doctor/schedule-surgery', verifyCookie, requireRole(['doctor']), checkPermission(MED_PERMISSIONS.SCHEDULE_SURGERY), (req, res) => {
     res.json({ success: true, message: 'Операция успешно добавлена в график хирургического отделения.' });
   });
+
   web.get('/med-admin', verifyCookie, requireRole(['admin']), (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'html', 'dashboard-admin.html'));
   });
+
   api.post('/admin/clinics', verifyCookie, requireRole(['admin']), async (req, res) => {
     try {
       const newClinic = await AdminService.createClinic(req.body);
@@ -114,18 +134,19 @@ function createMedRouter(jwtSecret) {
       res.status(400).json({ success: false, error: err.message });
     }
   });
+
   api.post('/admin/staff', verifyCookie, requireRole(['admin']), async (req, res) => {
     try {
       if (req.body.clinicId && !req.body.ClinicId) {
         req.body.ClinicId = req.body.clinicId;
       }
-
       const staffUser = await AdminService.createStaffAccount(req.body);
       res.status(201).json({ success: true, data: staffUser });
     } catch (err) {
       res.status(400).json({ success: false, error: err.message });
     }
   });
+
   api.delete('/admin/users/:id', verifyCookie, requireRole(['admin']), async (req, res) => {
     try {
       const result = await AdminService.deleteAccount(req.params.id);
@@ -134,6 +155,7 @@ function createMedRouter(jwtSecret) {
       res.status(400).json({ success: false, error: err.message });
     }
   });
+
   api.get('/admin/stats', verifyCookie, requireRole(['admin']), async (req, res) => {
     try {
       const stats = await AdminService.getSystemStats();
@@ -142,35 +164,33 @@ function createMedRouter(jwtSecret) {
       res.status(500).json({ success: false, error: err.message });
     }
   });
+
   api.get('/admin/list-clinics', verifyCookie, requireRole(['admin']), async (req, res) => {
-  try {
-    const Clinic = require('../database/models/clinics');
-    const clinics = await Clinic.findAll({ order: [['name', 'ASC']] });
-    res.json({ success: true, data: clinics });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-api.get('/admin/list-staff', verifyCookie, requireRole(['admin']), async (req, res) => {
-  try {
-    const User = require('../database/models/users');
-    const Clinic = require('../database/models/clinics');
-    const staff = await User.findAll({
-      where: { role: 'doctor' },
-      include: [{ model: Clinic, attributes: ['name'] }],
-      order: [['fullName', 'ASC']]
-    });
-    res.json({ success: true, data: staff });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-  // 1. Получить список всех доступных врачей для записи (Публично для пациентов)
+    try {
+      // ИСПРАВЛЕНИЕ: берем Clinic из инстанса базы данных, а не сырой файл функции
+      const clinics = await Clinic.findAll({ order: [['name', 'ASC']] });
+      res.json({ success: true, data: clinics });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  api.get('/admin/list-staff', verifyCookie, requireRole(['admin']), async (req, res) => {
+    try {
+      // ИСПРАВЛЕНИЕ: Используем проинициализированные модули для include отношений
+      const staff = await User.findAll({
+        where: { role: 'doctor' },
+        include: [{ model: Clinic, attributes: ['name'] }],
+        order: [['fullName', 'ASC']]
+      });
+      res.json({ success: true, data: staff });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   api.get('/patient/doctors-list', verifyCookie, requireRole(['patient']), async (req, res) => {
     try {
-      const User = require('../database/models/users');
-      const Clinic = require('../database/models/clinics');
-      
       const doctors = await User.findAll({
         where: { role: 'doctor' },
         attributes: ['id', 'fullName', 'specialty'],
@@ -182,52 +202,45 @@ api.get('/admin/list-staff', verifyCookie, requireRole(['admin']), async (req, r
     }
   });
 
-  // 2. Создать новую запись на прием (Бронирование талона)
   api.post('/patient/book', verifyCookie, requireRole(['patient']), async (req, res) => {
     try {
-      // ID пациента безопасно берем из расшифрованной HttpOnly-куки (req.user.id)
       const patientId = req.user.id;
-      
       const appointment = await PatientService.bookAppointment(patientId, req.body);
       res.status(212).json({ success: true, data: appointment });
     } catch (err) {
       res.status(400).json({ success: false, error: err.message });
     }
   });
-  // ИСПРАВЛЕНИЕ: Добавляем 'admin' в requireRole, чтобы при тесте под админом справочник подгружался!
+
   api.get('/doctor/diseases-list', verifyCookie, requireRole(['doctor', 'admin']), async (req, res) => {
     try {
-      const Disease = require('../database/models/diseases');
+      // ИСПРАВЛЕНИЕ: Используем готовую модель Disease
       const diseases = await Disease.findAll({ order: [['name', 'ASC']] });
       res.json({ success: true, data: diseases });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
   });
-  // API Смены пароля для любого авторизованного пользователя (Врач, Пациент, Админ)
+
   api.post('/auth/change-password', verifyCookie, async (req, res) => {
     try {
       const { oldPassword, newPassword } = req.body;
-      const userId = req.user.id; // Берем ID строго из HttpOnly куки
+      const userId = req.user.id;
 
       if (!oldPassword || !newPassword) {
         throw new Error('Необходимо указать старый и новый пароли');
       }
 
-      // Ищем пользователя в базе
       const user = await User.findByPk(userId);
       if (!user) throw new Error('Пользователь не найден');
 
-      // Сверяем старый пароль с хешем в БД
       const isMatch = await bcrypt.compare(oldPassword, user.password);
       if (!isMatch) {
         return res.status(400).json({ success: false, message: 'Старый пароль введен неверно' });
       }
 
-      // Хешируем новый пароль перед записью в SQLite
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
       
-      // Обновляем пароль и снимаем флаг временного пароля
       await user.update({
         password: hashedNewPassword,
         isTemporaryPassword: false
@@ -238,18 +251,14 @@ api.get('/admin/list-staff', verifyCookie, requireRole(['admin']), async (req, r
     }
   });
 
-  // Обновим также роут выгрузки расписания, чтобы он отдавал данные о вошедшем враче для шапки кабинета
   api.get('/doctor/me', verifyCookie, requireRole(['doctor']), async (req, res) => {
     try {
       const doctorData = await User.findByPk(req.user.id, { attributes: ['fullName', 'position', 'specialty'] });
       res.json({ success: true, doctor: doctorData });
-    } catch (err) {
-      res.status(500).json({ success: false, error: err.message });
-    }
-  });
-
-
-  return {web:web, api:api};
+} catch (err) {
+res.status(500).json({ success: false, error: err.message });
 }
-
+});
+return {web:web, api:api};
+}
 module.exports = createMedRouter;
