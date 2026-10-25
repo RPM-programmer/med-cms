@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель Администратора | MED-CMS</title>
+    <link rel="stylesheet" href="/med/css/admin.css">
+    <style>
+        .clickable-card { cursor: pointer; transition: transform 0.2s, background 0.2s; }
+        .clickable-card:hover { transform: translateY(-3px); background: #f1f5f9; }
+        .data-table-box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #cbd5e1; }
+        th { background-color: #f1f5f9; color: #1e3a8a; }
+        .uid-badge { background: #f1f5f9; font-family: monospace; padding: 3px 6px; border-radius: 4px; color: #e11d48; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="admin-panel">
+        <header>
+            <h1>Управление медицинской платформой (Суперадмин)</h1>
+            <button onclick="logout()" class="btn-logout">Выйти</button>
+        </header>
+
+        <!-- Карточки стали кликабельными кнопками -->
+        <section class="stats-cards">
+            <div class="card clickable-card" onclick="viewClinicsTable()">Всего клиник (Клик для просмотра): <span id="statClinics">0</span></div>
+            <div class="card clickable-card" onclick="viewStaffTable()">Врачей в штате (Клик для просмотра): <span id="statStaff">0</span></div>
+            <div class="card">Пациентов в базе: <span id="statPatients">0</span></div>
+        </section>
+
+        <!-- Динамическое окно для вывода списков с UID -->
+        <div id="tableViewerBlock" class="data-table-box hidden">
+            <h3 id="tableViewerTitle">Название таблицы</h3>
+            <div id="tableViewerContent"></div>
+        </div>
+
+        <div class="grid-forms" style="margin-top: 30px;">
+            <!-- Форма 1: Добавление клиники -->
+            <div class="form-box">
+                <h3>1. Добавить клинику / поликлинику</h3>
+                <form id="clinicForm">
+                    <input type="text" id="clinicName" placeholder="Название учреждения" required>
+                    <select id="clinicType" required>
+                        <option value="больница">Больница</option>
+                        <option value="поликлиника">Поликлиника</option>
+                        <option value="станция скорой помощи">Станция скорой помощи</option>
+                    </select>
+                    <input type="text" id="clinicAddress" placeholder="Адрес (Город, улица, дом)" required>
+                    <button type="submit">Создать учреждение</button>
+                </form>
+            </div>
+
+            <!-- Форма 2: Добавление врача -->
+            <div class="form-box">
+                <h3>2. Зарегистрировать сотрудника (Выдача аккаунта)</h3>
+                <form id="staffForm">
+                    <input type="text" id="staffName" placeholder="ФИО сотрудника" required>
+                    <input type="email" id="staffEmail" placeholder="Рабочий Email" required>
+                    <input type="text" id="staffPassword" placeholder="Временный пароль для врача" required>
+                    
+                    <select id="staffSpecialty" required>
+                        <option value="Терапевт">Терапевт</option>
+                        <option value="Педиатр">Педиатр</option>
+                        <option value="Хирург">Хирург</option>
+                        <option value="Кардиохирург">Кардиохирург</option>
+                        <option value="Патологоанатом">Патологоанатом</option>
+                    </select>
+                    
+                    <input type="text" id="staffClinic" placeholder="Введите UID клиники (Брать из таблицы выше)" required>
+                    <button type="submit">Создать аккаунт врача</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="/med/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+document.addEventListener('DOMContentLoaded', () => {
+    loadDashboardStats();
+});
+
+// Загрузка статистики на карточки при старте
+async function loadDashboardStats() {
+    try {
+        // ИСПРАВЛЕНИЕ ПУТИ ПОД ВАШУ АРХИТЕКТУРУ
+        const response = await fetch('/med/api/admin/stats');
+        const result = await response.json();
+
+        if (!result.success) {
+            alert('Ошибка доступа к админ-панели: ' + result.message);
+            window.location.href = '/med/med-login'; // Путь к логину, если сессия упала
+            return;
+        }
+
+        document.getElementById('statClinics').textContent = result.stats.summary.totalClinics;
+        document.getElementById('statPatients').textContent = result.stats.summary.totalPatients;
+        document.getElementById('statStaff').textContent = result.stats.summary.totalStaff;
+
+        // Автоматически обновляем выпадающий список клиник для формы 2
+        await loadClinicsDropdown();
+
+    } catch (err) {
+        console.error('Ошибка загрузки статистики:', err);
+    }
+}
+
+// Наполнение выпадающего списка (селекта) созданными клиниками из SQLite
+async function loadClinicsDropdown() {
+    try {
+        // ИСПРАВЛЕНИЕ ПУТИ
+        const response = await fetch('/med/api/admin/list-clinics');
+        const result = await response.json();
+        
+        const select = document.getElementById('staffClinic');
+        select.innerHTML = '<option value="">-- Выберите больницу --</option>';
+
+        if (result.success && result.data.length > 0) {
+            result.data.forEach(clinic => {
+                const opt = document.createElement('option');
+                opt.value = clinic.id; // Передаст числовой ID (1, 2, 3...)
+                opt.textContent = `[ID: ${clinic.id}] ${clinic.name}`;
+                select.appendChild(opt);
+            });
+        }
+    } catch (err) {
+        console.error('Ошибка наполнения списка клиник:', err);
+    }
+}
+
+// Показать таблицу КЛИНИК с UID по клику на карточку
+async function viewClinicsTable() {
+    const block = document.getElementById('tableViewerBlock');
+    const title = document.getElementById('tableViewerTitle');
+    const content = document.getElementById('tableViewerContent');
+
+    block.classList.remove('hidden');
+    title.textContent = ' 🏥 Реестр медицинских учреждений системы';
+    content.innerHTML = '<p>Загрузка таблицы...</p>';
+
+    try {
+        // ИСПРАВЛЕНИЕ ПУТИ
+        const res = await fetch('/med/api/admin/list-clinics');
+        const result = await res.json();
+
+        if (result.success && result.data.length > 0) {
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Клиники</th>
+                            <th>Название</th>
+                            <th>Тип</th>
+                            <th>Адрес</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            result.data.forEach(c => {
+                html += `
+                    <tr>
+                        <td><span class="uid-badge">${c.id}</span></td>
+                        <td><b>${c.name}</b></td>
+                        <td>${c.type}</td>
+                        <td>${c.address}</td>
+                    </tr>
+                `;
+            });
+            html += '</tbody></table>';
+            content.innerHTML = html;
+        } else {
+            content.innerHTML = '<p>В базе данных пока нет созданных учреждений.</p>';
+        }
+    } catch (err) {
+        content.innerHTML = '<p style="color:red;">Ошибка загрузки данных клиник</p>';
+    }
+}
+
+// Показать таблицу ВРАЧЕЙ с UID по клику на карточку
+async function viewStaffTable() {
+    const block = document.getElementById('tableViewerBlock');
+    const title = document.getElementById('tableViewerTitle');
+    const content = document.getElementById('tableViewerContent');
+
+    block.classList.remove('hidden');
+    title.textContent = '👨‍⚕️ Зарегистрированный медицинский персонал';
+    content.innerHTML = '<p>Загрузка таблицы...</p>';
+
+    try {
+        // ИСПРАВЛЕНИЕ ПУТИ
+        const res = await fetch('/med/api/admin/list-staff');
+        const result = await res.json();
+
+        if (result.success && result.data.length > 0) {
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Сотрудника</th>
+                            <th>ФИО</th>
+                            <th>Email</th>
+                            <th>Специальность</th>
+                            <th>Место работы</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            result.data.forEach(s => {
+                const clinicName = s.Clinic ? s.Clinic.name : '<span style="color:red;">Не привязан</span>';
+                html += `
+                    <tr>
+                        <td><span class="uid-badge">${s.id}</span></td>
+                        <td><b>${s.fullName}</b></td>
+                        <td>${s.email}</td>
+                        <td>${s.specialty}</td>
+                        <td>${clinicName}</td>
+                    </tr>
+                `;
+            });
+            html += '</tbody></table>';
+            content.innerHTML = html;
+        } else {
+            content.innerHTML = '<p>В штате системы пока нет зарегистрированных врачей.</p>';
+        }
+    } catch (err) {
+        content.innerHTML = '<p style="color:red;">Ошибка загрузки данных персонала</p>';
+    }
+}
+
+// Задача 1: Форма создания клиники
+document.getElementById('clinicForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+        name: document.getElementById('clinicName').value,
+        type: document.getElementById('clinicType').value,
+        address: document.getElementById('clinicAddress').value
+    };
+
+    try {
+        // ИСПРАВЛЕНИЕ ПУТИ
+        const response = await fetch('/med/api/admin/clinics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert(`Учреждение успешно добавлено в SQLite под ID №${result.data.id}!`);
+            document.getElementById('clinicForm').reset();
+            await loadDashboardStats(); // Перезагрузит карточки и селект
+        } else {
+            alert('Ошибка: ' + result.error);
+        }
+    } catch (err) {
+        alert('Ошибка сети при создании клиники');
+    }
+});
+
+// Задача 2: Форма создания врача
+document.getElementById('staffForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const clinicSelect = document.getElementById('staffClinic');
+    const selectedClinicId = clinicSelect.value;
+
+    if (!selectedClinicId) {
+        alert('Пожалуйста, сначала создайте хотя бы одну клинику и выберите её из списка!');
+        return;
+    }
+
+    const payload = {
+        fullName: document.getElementById('staffName').value,
+        email: document.getElementById('staffEmail').value,
+        rawPassword: document.getElementById('staffPassword').value,
+        specialty: document.getElementById('staffSpecialty').value,
+        clinicId: parseInt(selectedClinicId, 10)
+    };
+
+    try {
+        // ИСПРАВЛЕНИЕ ПУТИ
+        const response = await fetch('/med/api/admin/staff', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert(`Аккаунт врача "${result.data.fullName}" успешно создан!`);
+            document.getElementById('staffForm').reset();
+            await loadDashboardStats();
+        } else {
+            alert('Ошибка: ' + result.error);
+        }
+    } catch (err) {
+        alert('Ошибка сети при создании сотрудника');
+    }
+});
+
+async function logout() {
+    // ИСПРАВЛЕНИЕ ПУТИ
+    await fetch('/med/api/auth/logout', { method: 'POST' });
+    window.location.href = '/med/med-login';
+}

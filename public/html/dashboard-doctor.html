@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель Врача | MED-CMS</title>
+    <link rel="stylesheet" href="/med/css/doctor.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>АРМ Врача (Автоматизированное рабочее место)</h1>
+            <button onclick="logout()" class="btn-logout">Выйти</button>
+        </header>
+
+        <div class="main-content">
+            <!-- Список приемов -->
+            <section class="schedule-section">
+                <h3>Записи на сегодня</h3>
+                <ul id="scheduleList" class="patient-list">
+                    <li>Загрузка расписания...</li>
+                </ul>
+            </section>
+
+            <!-- Окно текущего осмотра -->
+            <section class="exam-section hidden" id="examBlock">
+                <h3>Проведение осмотра: <span id="currentPatientName"></span></h3>
+                <form id="examForm">
+                    <input type="hidden" id="activeAppointmentId">
+                    
+                    <div class="form-group">
+                        <label>Жалобы пациента</label>
+                        <textarea id="examComplaints" required placeholder="Кашель, температура 38.2..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Объективные данные осмотра</label>
+                        <textarea id="examObjective" required placeholder="Зев гиперемирован, хрипы в легких..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Личные заметки врача / Лечение</label>
+                        <textarea id="examNotes" placeholder="Рекомендован постельный режим..."></textarea>
+                    </div>
+
+                    <!-- Выпадающий список болезней, подтягиваемый из нашей SQLite БД -->
+                    <div class="form-group">
+                        <label>Установить диагноз (Болезнь)</label>
+                        <select id="examDisease" required>
+                            <option value="">-- Выберите диагноз из справочника МКБ --</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn-save">Завершить осмотр и внести в статистику</button>
+                </form>
+            </section>
+        </div>
+    </div>
+    <script src="/med/js/doctor.js"></script>
+</body>
+</html>

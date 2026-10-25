@@ -1,8 +1,9 @@
 {
   "name": "med-cms",
-  "version": "0.0.1",
-  "description": "Медицинский движок авторизации и CMS на Express и Mongoose",
+  "version": "1.0.0-beta.1",
+  "description": "Медицинская мультитендантная CMS на Express и Sequelize (SQLite3) с системой ролей и автоматическим расчетом участков",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,16 +11,25 @@
     "medical",
     "cms",
     "express",
+    "sequelize",
+    "sqlite3",
     "auth",
     "cookies"
   ],
-  "author": "Ваше Имя",
+  "author": "prm-programmmer",
   "license": "MIT",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
+    "bcrypt": "^6.0.0",
+    "chalk-palette": "^3.0.0",
     "cookie-parser": "^1.4.6",
+    "custom-color-logs": "^3.2.1",
+    "dotenv": "^18.0.9",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.0.0"
+    "sequelize": "^6.37.3",
+    "sqlite3": "^6.0.1"
+  },
+  "optionalDependencies": {
+    "node-gyp": "^13.1.0"
   }
 }
