@@ -30,7 +30,6 @@
         </header>
 
         <div class="grid">
-            <!-- Блок формы записи на прием к врачу -->
 <div class="section-box" style="border-top: 4px solid #2563eb;">
     <h3>📅 Запись на прием к врачу</h3>
     <form id="bookingForm">
@@ -54,22 +53,36 @@
                     <option value="09:00">09:00</option>
                     <option value="09:30">09:30</option>
                     <option value="10:00">10:00</option>
+                    <option value="10:00">10:30</option>
+                    <option value="10:00">11:00</option>
+                    <option value="10:00">11:30</option>
+                    <option value="10:00">12:00</option>
+                    <option value="10:00">12:30</option>
+                    <option value="10:00">13:00</option>
+                    <option value="10:00">13:30</option>
                     <option value="14:00">14:00</option>
                     <option value="14:30">14:30</option>
+                    <option value="08:00">15:00</option>
+                    <option value="08:30">15:30</option>
+                    <option value="09:00">16:00</option>
+                    <option value="09:30">16:30</option>
+                    <option value="10:00">17:00</option>
+                    <option value="14:00">17:30</option>
+                    <option value="14:30">18:00</option>
+                    <option value="14:30">18:30</option>
+                    <option value="14:30">19:00</option>
+                    <option value="14:30">19:30</option>
                 </select>
             </div>
         </div>
         <button type="submit" class="btn" style="padding: 10px; background-color: #2563eb;">Забронировать талон</button>
     </form>
 </div>
-
-            <!-- Блок 1: Адрес проживания и Автовычисление участка -->
             <div class="section-box">
                 <h3>📍 Мой медицинский участок</h3>
                 <div id="districtInfo" style="margin-bottom: 15px;">
                     <p>Участок и кабинет не определены. Укажите адрес проживания ниже.</p>
                 </div>
-                
                 <form id="addressForm">
                     <h4 style="margin: 10px 0;">Обновить адрес проживания</h4>
                     <div class="form-group" style="margin-bottom: 10px;">
@@ -82,16 +95,12 @@
                     <button type="submit" class="btn" style="padding: 8px;">Сохранить адрес и рассчитать участок</button>
                 </form>
             </div>
-
-            <!-- Блок 2: Краткая памятка -->
             <div class="section-box">
                 <h3>ℹ️ Справка пациента</h3>
                 <p>При заполнении адреса наша медицинская система **автоматически распределяет** вас к нужной поликлинике, терапевтическому участку и назначает постоянный кабинет для посещения.</p>
                 <p>Ниже отображается ваша полная электронная медицинская карта: диагнозы, рекомендации и рецепты на лекарства, выписанные врачами во время осмотров.</p>
             </div>
         </div>
-
-        <!-- Блок 3: Электронная медицинская карта и история приемов -->
         <section class="section-box" style="background: #ffffff;">
             <h3>📋 Моя электронная медицинская карта и история приемов</h3>
             <div id="medicalHistoryList">
@@ -99,7 +108,6 @@
             </div>
         </section>
     </div>
-
     <script src="/med/js/patient.js"></script>
 </body>
 </html>

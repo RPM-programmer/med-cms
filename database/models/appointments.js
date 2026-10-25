@@ -1,8 +1,7 @@
 const { DataTypes } = require('sequelize');
-const { getSequelizeInstance } = require('../config/db-init');
-
+const path = require("path");
+const { getSequelizeInstance } = require(path.join(__dirname, '..', 'config', 'db-init.js'));
 const sequelize = getSequelizeInstance();
-
 const Appointment = sequelize.define('Appointment', {
   id: {
     type: DataTypes.UUID,
@@ -15,21 +14,20 @@ const Appointment = sequelize.define('Appointment', {
   },
   time: {
     type: DataTypes.STRING,
-    allowNull: false // Формат строки, например, "09:00"
+    allowNull: false
   },
   status: {
     type: DataTypes.ENUM('ожидается', 'завершен', 'отменен'),
     defaultValue: 'ожидается',
     allowNull: false
   },
-  // Результаты медицинского осмотра во время приема
   complaints: {
     type: DataTypes.TEXT,
     allowNull: true
   },
   objectively: {
     type: DataTypes.TEXT,
-    allowNull: true // Давление, пульс, общее состояние
+    allowNull: true
   },
   doctorNotes: {
     type: DataTypes.TEXT,
@@ -38,5 +36,4 @@ const Appointment = sequelize.define('Appointment', {
 }, {
   timestamps: true
 });
-
 module.exports = Appointment;

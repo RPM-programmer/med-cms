@@ -1,18 +1,13 @@
-const User = require('../../models/users');
-const UserAddress = require('../../models/user-addresses');
-const Appointment = require('../../models/appointments');
-const Disease = require('../../models/diseases');
-
+const path = require("path")
+const User = require(path.join(__dirname, '..', '..', 'models', 'users'));
+const UserAddress = require(path.join(__dirname, '..', '..', 'models', 'user-addresses'));
+const Appointment = require(path.join(__dirname, '..', '..', 'models', 'appointments'));
+const Disease = require(path.join(__dirname, '..', '..', 'models', 'diseases'));
 const getProfile = {
-  /**
-   * Собрать полное медицинское досье пациента для личного кабинета
-   */
   async getFullData(patientId) {
     if (!patientId) {
       throw new Error('ID пациента не указан');
     }
-
-    // 1. Ищем базовый профиль пользователя (исключаем пароль ради безопасности)
     const profile = await User.findByPk(patientId, {
       attributes: { exclude: ['password'] },
       include: [
@@ -22,13 +17,9 @@ const getProfile = {
         }
       ]
     });
-
-    // ИСПРАВЛЕНО: Корректная проверка на существование профиля
     if (!profile) {
       throw new Error('Профиль пациента не найден в базе данных');
     }
-
-    // 2. Вытягиваем всю историю приёмов (прошлых и будущих) со связанными врачами и диагнозами
     const appointments = await Appointment.findAll({
       where: { PatientId: patientId },
       include: [
@@ -47,13 +38,10 @@ const getProfile = {
         ['time', 'DESC']
       ]
     });
-
-    // Формируем единый структурированный объект "информации о себе"
     return {
       personalInfo: profile,
       medicalHistory: appointments
     };
   }
 };
-
 module.exports = getProfile;

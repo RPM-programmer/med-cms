@@ -20,22 +20,16 @@
             <h1>Управление медицинской платформой (Суперадмин)</h1>
             <button onclick="logout()" class="btn-logout">Выйти</button>
         </header>
-
-        <!-- Карточки стали кликабельными кнопками -->
         <section class="stats-cards">
-            <div class="card clickable-card" onclick="viewClinicsTable()">Всего клиник (Клик для просмотра): <span id="statClinics">0</span></div>
-            <div class="card clickable-card" onclick="viewStaffTable()">Врачей в штате (Клик для просмотра): <span id="statStaff">0</span></div>
+            <div class="card clickable-card" onclick="viewClinicsTable()">Всего клиник: <span id="statClinics">0</span></div>
+            <div class="card clickable-card" onclick="viewStaffTable()">Врачей в штате: <span id="statStaff">0</span></div>
             <div class="card">Пациентов в базе: <span id="statPatients">0</span></div>
         </section>
-
-        <!-- Динамическое окно для вывода списков с UID -->
         <div id="tableViewerBlock" class="data-table-box hidden">
             <h3 id="tableViewerTitle">Название таблицы</h3>
             <div id="tableViewerContent"></div>
         </div>
-
         <div class="grid-forms" style="margin-top: 30px;">
-            <!-- Форма 1: Добавление клиники -->
             <div class="form-box">
                 <h3>1. Добавить клинику / поликлинику</h3>
                 <form id="clinicForm">
@@ -49,8 +43,6 @@
                     <button type="submit">Создать учреждение</button>
                 </form>
             </div>
-
-                        <!-- Задача 2: Зарегистрировать сотрудника (Выпадающий список) -->
             <div class="form-box">
                 <h3>2. Зарегистрировать сотрудника (Выдача аккаунта)</h3>
                 <form id="staffForm">
@@ -62,13 +54,11 @@
                         <label>Должность / Специальность</label>
                         <select id="staffMedicalProfile" required>
                             <option value="">-- Выберите профиль сотрудника --</option>
-                            <!-- Административный и средний персонал -->
                             <option value="Главврач">Главврач</option>
                             <option value="Медсестра">Медсестра</option>
                             <option value="Врач скорой помощи">Врач скорой помощи</option>
                             <option value="Фельдшер">Фельдшер</option>
                             <option value="Регистратор">Регистратор</option>
-                            <!-- 34 Врачебные специальности -->
                             <option value="Терапевт">Терапевт</option>
                             <option value="Педиатр">Педиатр</option>
                             <option value="Врач общей практики">Врач общей практики</option>
@@ -112,11 +102,9 @@
                             <option value="">-- Выберите больницу --</option>
                         </select>
                     </div>
-
                     <button type="submit">Создать аккаунт сотрудника</button>
                 </form>
             </div>
-
         </div>
     </div>
     <script src="/med/js/admin.js"></script>

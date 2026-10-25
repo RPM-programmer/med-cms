@@ -3,7 +3,6 @@ function toggleAuth() {
     document.getElementById('registerBox').classList.toggle('hidden');
 }
 
-// Обработка Входа
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
@@ -19,8 +18,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const result = await response.json();
         
         if (result.success) {
-            // Перенаправляем пользователя на его страницу в зависимости от роли в БД
-            if (result.user.role === 'admin') window.location.href = '/med/html/dashboard-admin.html';
+                        if (result.user.role === 'admin') window.location.href = '/med/html/dashboard-admin.html';
             else if (result.user.role === 'doctor') window.location.href = '/med/html/dashboard-doctor.html';
             else window.location.href = '/med/html/dashboard-patient.html';
         } else {
@@ -31,7 +29,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
 });
 
-// Обработка Регистрации
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fullName = document.getElementById('regName').value;

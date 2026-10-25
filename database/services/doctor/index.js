@@ -1,16 +1,10 @@
-const getSchedule = require('./get-schedule');
-const patientAccess = require('./patient-access');
-const conductExam = require('./conduct-exam');
-
+const path = require("path")
+const getSchedule = require(path.join(__dirname, 'get-schedule'));
+const patientAccess = require(path.join(__dirname, 'patient-access'));
+const conductExam = require(path.join(__dirname, 'conduct-exam'));
 const DoctorService = {
-  // Расписание приемов врача
   getMySchedule: getSchedule.byDoctorId,
-
-  // Медицинская история пациентов
   getPatientHistory: patientAccess.getHistory,
-
-  // Проведение и фиксация результатов осмотра
   saveExamination: conductExam.saveResult
 };
-
 module.exports = DoctorService;

@@ -1,8 +1,7 @@
 const { DataTypes } = require('sequelize');
-const { getSequelizeInstance } = require('../config/db-init');
-
+const path = require("path")
+const { getSequelizeInstance } = require(path.join('..', 'config', 'db-init.js'));
 const sequelize = getSequelizeInstance();
-
 const UserAddress = sequelize.define('UserAddress', {
   id: {
     type: DataTypes.UUID,
@@ -21,7 +20,6 @@ const UserAddress = sequelize.define('UserAddress', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  // Поля, вычисляемые автоматически на основе адреса
   assignedDistrict: {
     type: DataTypes.STRING,
     allowNull: true
@@ -33,5 +31,4 @@ const UserAddress = sequelize.define('UserAddress', {
 }, {
   timestamps: true
 });
-
 module.exports = UserAddress;

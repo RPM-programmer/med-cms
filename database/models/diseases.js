@@ -1,12 +1,11 @@
 const { DataTypes } = require('sequelize');
-const { getSequelizeInstance } = require('../config/db-init');
-
+const path = require("path");
+const { getSequelizeInstance } = require(path.join(__dirname, '..', 'config', 'db-init.js'));
 const sequelize = getSequelizeInstance();
-
 const Disease = sequelize.define('Disease', {
   id: {
     type: DataTypes.INTEGER,
-    autoIncrement: true, // База данных сама ставит 1, 2, 3...
+    autoIncrement: true,
     primaryKey: true
   },
   name: { 
@@ -17,7 +16,7 @@ const Disease = sequelize.define('Disease', {
   code: { 
     type: DataTypes.STRING, 
     allowNull: false, 
-    unique: true // Код МКБ-10
+    unique: true
   },
   treatmentRecommendations: { 
     type: DataTypes.TEXT, 
@@ -35,5 +34,4 @@ const Disease = sequelize.define('Disease', {
 }, {
   timestamps: true
 });
-
 module.exports = Disease;

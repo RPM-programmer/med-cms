@@ -1,15 +1,11 @@
-const Appointment = require('../../models/appointments');
-const User = require('../../models/users');
-
+const path = require("path")
+const Appointment = require(path.join(__dirname, '..', '..', 'models', 'appointments'));
+const User = require(path.join(__dirname, '..', '..', 'models', 'users'));
 const getSchedule = {
-  /**
-   * Получить список ожидающих пациентов для конкретного врача
-   */
   async byDoctorId(doctorId) {
     if (!doctorId) {
       throw new Error('ID врача не указан');
     }
-
     return await Appointment.findAll({
       where: { 
         DoctorId: doctorId, 
@@ -24,5 +20,4 @@ const getSchedule = {
     });
   }
 };
-
 module.exports = getSchedule;

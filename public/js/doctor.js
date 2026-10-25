@@ -1,28 +1,22 @@
-// Загрузка расписания и справочника болезней при старте страницы доктора
 document.addEventListener('DOMContentLoaded', () => {
     loadSchedule();
     loadDiseasesCatalog();
     loadDoctorProfile();
 });
 
-// 1. ПОДГРУЗКА ДИНАМИЧЕСКОГО СПРАВОЧНИКА БОЛЕЗНЕЙ ИЗ ТАБЛИЦЫ DISEASES
 async function loadDiseasesCatalog() {
     try {
-        // ИСПРАВЛЕНИЕ ПУТИ: Добавляем префикс /med/api под вашу архитектуру роутера
-        const res = await fetch('/med/api/doctor/diseases-list');
+                const res = await fetch('/med/api/doctor/diseases-list');
         const result = await res.json();
         
         const select = document.getElementById('examDisease');
         
-        // Очищаем список, оставляя только дефолтную подсказку
-        select.innerHTML = '<option value="">-- Выберите диагноз из справочника МКБ --</option>';
+                select.innerHTML = '<option value="">-- Выберите диагноз из справочника МКБ --</option>';
 
         if (result.success && result.data.length > 0) {
             result.data.forEach(disease => {
                 const opt = document.createElement('option');
-                opt.value = disease.id; // Передаст числовой ID болезни (1, 2, 3...)
-                opt.textContent = `[${disease.code}] ${disease.name}`; // Текст в теге
-                select.appendChild(opt);
+                opt.value = disease.id;                 opt.textContent = `[${disease.code}] ${disease.name}`;                 select.appendChild(opt);
             });
             console.log(`🌱 [АРМ Врача] Успешно загружено ${result.data.length} диагнозов из SQLite таблицы.`);
         } else {
@@ -33,11 +27,9 @@ async function loadDiseasesCatalog() {
     }
 }
 
-// 2. ЗАГРУЗКА ОЧЕРЕДИ ПАЦИЕНТОВ НА СЕГОДНЯ
 async function loadSchedule() {
     try {
-        // ИСПРАВЛЕНИЕ ПУТИ
-        const res = await fetch('/med/api/doctor/schedule');
+                const res = await fetch('/med/api/doctor/schedule');
         const data = await res.json();
         
         const list = document.getElementById('scheduleList');
@@ -58,7 +50,6 @@ async function loadSchedule() {
     }
 }
 
-// 3. ОТПРАВКА РЕЗУЛЬТАТОВ ОСМОТРА И ЗАВЕРШЕНИЕ ПРИЕМА
 document.getElementById('examForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -73,8 +64,7 @@ document.getElementById('examForm').addEventListener('submit', async (e) => {
     };
 
     try {
-        // ИСПРАВЛЕНИЕ ПУТИ
-        const res = await fetch('/med/api/doctor/complete-examination', {
+                const res = await fetch('/med/api/doctor/complete-examination', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -85,8 +75,7 @@ document.getElementById('examForm').addEventListener('submit', async (e) => {
             alert('Прием успешно завершен! Карточка обновлена, статистика внесена в SQLite.');
             document.getElementById('examBlock').classList.add('hidden');
             document.getElementById('examForm').reset();
-            await loadSchedule(); // Обновляем очередь пациентов
-        } else {
+            await loadSchedule();         } else {
             alert('Ошибка завершения приема: ' + result.error);
         }
     } catch (err) {
@@ -101,11 +90,9 @@ function startExamination(appointmentId, patientName) {
 }
 
 async function logout() {
-    // ИСПРАВЛЕНИЕ ПУТИ
-    await fetch('/med/api/auth/logout', { method: 'POST' });
+        await fetch('/med/api/auth/logout', { method: 'POST' });
     window.location.href = '/med/med-login';
 }
-// Загрузка личных данных сотрудника (ФИО и Должность) в шапку АРМ
 async function loadDoctorProfile() {
     try {
         const res = await fetch('/med/api/doctor/me');
@@ -119,15 +106,12 @@ async function loadDoctorProfile() {
     }
 }
 
-// Переключение видимости модального окна смены пароля
 function togglePasswordModal() {
     const modal = document.getElementById('passwordModal');
     modal.classList.toggle('hidden');
-    // Очищаем форму при закрытии/открытии
-    document.getElementById('changePasswordForm').reset();
+        document.getElementById('changePasswordForm').reset();
 }
 
-// Обработка отправки формы смены пароля
 document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -144,8 +128,7 @@ document.getElementById('changePasswordForm').addEventListener('submit', async (
         const result = await response.json();
         if (result.success) {
             alert('Ваш пароль успешно изменен в базе данных SQLite!');
-            togglePasswordModal(); // Закрываем окно
-        } else {
+            togglePasswordModal();         } else {
             alert('Ошибка смены пароля: ' + result.message);
         }
     } catch (err) {

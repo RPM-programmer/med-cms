@@ -1,12 +1,11 @@
 const { DataTypes } = require('sequelize');
-const { getSequelizeInstance } = require('../config/db-init');
-
+const path = require("path")
+const { getSequelizeInstance } = require(path.join(__dirname, '..', 'config', 'db-init.js'));
 const sequelize = getSequelizeInstance();
-
 const Clinic = sequelize.define('Clinic', {
   id: {
-    type: DataTypes.INTEGER, // База данных сама будет ставить 1, 2, 3...
-    autoIncrement: true,     // Включаем автоинкремент
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true
   },
   name: { type: DataTypes.STRING, allowNull: false, unique: true },
@@ -16,5 +15,4 @@ const Clinic = sequelize.define('Clinic', {
 }, { 
   timestamps: true 
 });
-
 module.exports = Clinic;

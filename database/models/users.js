@@ -1,12 +1,11 @@
 const { DataTypes } = require('sequelize');
-const { getSequelizeInstance } = require('../config/db-init');
-
+const path = require("path");
+const { getSequelizeInstance } = require(path.join(__dirname, '..', 'config', 'db-init.js'));
 const sequelize = getSequelizeInstance();
-
 const User = sequelize.define('User', {
   id: {
-    type: DataTypes.INTEGER, // Меняем на число
-    autoIncrement: true,     // Включаем автоинкремент
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
     primaryKey: true
   },
   email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: true } },
@@ -29,5 +28,4 @@ const User = sequelize.define('User', {
 }, { 
   timestamps: true 
 });
-
 module.exports = User;

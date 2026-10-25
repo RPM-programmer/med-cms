@@ -1,18 +1,12 @@
-const createClinic = require('./create-clinic');
-const manageStaff = require('./manage-staff');
-const dbAnalytics = require('./db-analytics');
-
+const path = require("path")
+const createClinic = require(path.join(__dirname, 'create-clinic'));
+const manageStaff = require(path.join(__dirname, 'manage-staff'));
+const dbAnalytics = require(path.join(__dirname, 'db-analytics'));
 const AdminService = {
-  // Управление медицинскими учреждениями
   createClinic: createClinic.create,
   getAllClinics: createClinic.getAll,
-
-  // Управление персоналом клиник
   createStaffAccount: manageStaff.createAccount,
   deleteAccount: manageStaff.deleteAccount,
-
-  // Аналитические данные и таблицы БД
   getSystemStats: dbAnalytics.getStats
 };
-
 module.exports = AdminService;

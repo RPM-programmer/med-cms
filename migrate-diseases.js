@@ -1,10 +1,9 @@
+const logger = require("custom-color-logs");
+const chalk = require("chalk-palette");
 const path = require('path');
-const { initDatabase } = require('./database/config/db-init');
-const Disease = require('./database/models/diseases');
-
-// Внешний независимый массив данных (его можно вынести в отдельный diseases.json)
+const { initDatabase } = require(path.join(__dirname, 'database', 'config', 'db-init'));
+const Disease = require(path.join(__dirname, 'database', 'models', 'diseases'));
 const externalDiseasesList = [
-  // 1. БОЛЕЗНИ ОРГАНОВ ДЫХАНИЯ (Самая частая причина обращений в поликлиники РБ)
   { 
     name: 'Острая респираторная вирусная инфекция (ОРВИ) верхних дыхательных путей', 
     code: 'J06.9', 
@@ -29,8 +28,6 @@ const externalDiseasesList = [
     treatmentRecommendations: 'Щадящая диета (жидкая и теплая пища), полоскание зева антисептиками, строгий постельный режим во избежание осложнений на сердце и почки.', 
     recommendedMedications: 'Феноксиметилпенициллин, Цефуроксим, Хлоргексидин (спрей)' 
   },
-
-  // 2. БОЛЕЗНИ СИСТЕМЫ КРОВООБРАЩЕНИЯ (Основная причина инвалидности и диспансерного учета в РБ)
   { 
     name: 'Артериальная гипертензия (Гипертоническая болезнь II стадии)', 
     code: 'I11.9', 
@@ -49,8 +46,6 @@ const externalDiseasesList = [
     treatmentRecommendations: 'Умеренная физическая активность (ходьба), контроль веса, терапия сопутствующей гипертензии.', 
     recommendedMedications: 'Периндоприл, Розувастатин, Клопидогрел' 
   },
-
-  // 3. БОЛЕЗНИ КОСТНО-МЫШЕЧНОЙ СИСТЕМЫ (Высокая выявляемость, особенно у работающего населения)
   { 
     name: 'Остеохондроз позвоночника (Радикулопатия, люмбалгия)', 
     code: 'M42.1', 
@@ -63,8 +58,6 @@ const externalDiseasesList = [
     treatmentRecommendations: 'Снижение нагрузки на суставы (снижение веса), использование трости при ходьбе, лечебная гимнастика для укрепления мышц бедра.', 
     recommendedMedications: 'Мелоксикам, Хондроитина сульфат, Нимесулид гель' 
   },
-
-  // 4. БОЛЕЗНИ ОРГАНОВ ПИЩЕВАРЕНИЯ
   { 
     name: 'Хронический гастрит, обострение. Ассоциированный с Helicobacter pylori', 
     code: 'K29.5', 
@@ -83,8 +76,6 @@ const externalDiseasesList = [
     treatmentRecommendations: 'Диета №5п (полное исключение жирной, острой пищи и алкоголя). Дробный прием пищи.', 
     recommendedMedications: 'Панкреатин (Креон/Мезим), Спазмалгон' 
   },
-
-  // 5. БОЛЕЗНИ ЭНДОКРИННОЙ СИСТЕМЫ
   { 
     name: 'Сахарный диабет 2-го типа без осложнений', 
     code: 'E11.9', 
@@ -97,8 +88,6 @@ const externalDiseasesList = [
     treatmentRecommendations: 'Использование в пищу исключительно йодированной соли, употребление морепродуктов, контроль уровня ТТГ раз в год.', 
     recommendedMedications: 'Калия йодид (Йодомарин)' 
   },
-
-  // 6. ХИРУРГИЯ, ТРАВМАТОЛОГИЯ И УРОЛОГИЯ
   { 
     name: 'Острый аппендицит (Подозрение, направление на госпитализацию)', 
     code: 'K35.8', 
@@ -117,8 +106,6 @@ const externalDiseasesList = [
     treatmentRecommendations: 'Обильное питье (до 2.5 литров в сутки, предпочтительно клюквенный морс), сухое тепло на низ живота, исключение половой жизни на время лечения.', 
     recommendedMedications: 'Фосфомицин (Монурал), Канефрон Н, Фуразидин (Фурамаг)' 
   },
-
-  // 7. НЕВРОЗЫ И ПСИХОНЕВРОЛОГИЯ
   { 
     name: 'Соматоформная дисфункция вегетативной нервной системы (НЦД / ВСД)', 
     code: 'F45.3', 
@@ -126,33 +113,22 @@ const externalDiseasesList = [
     recommendedMedications: 'Адаптол (Мебикар), Магний B6, пустырника экстракт' 
   }
 ];
-
-
 async function runMigration() {
   try {
-    console.log('⏳ [Migration] Подключение к базе данных для импорта справочника...');
-    
-    // Подключаемся к файлу базы данных
+    console.log(logger.DatabaseMedMigrationInfo('Подключение к базе данных для импорта справочника...'));
     await initDatabase(path.join(__dirname, "db", "med-cms.sqlite"));
-
-    console.log('⏳ [Migration] Проверка текущего состояния таблицы Diseases...');
+    console.log(logger.DatabaseMedMigrationInfo('Проверка текущего состояния таблицы Diseases...'));
     const count = await Disease.count();
-    
     if (count === 0) {
-      // Прямой массовый импорт внешнего независимого списка в отдельную таблицу
       await Disease.bulkCreate(externalDiseasesList);
-      console.log(`\n==================================================`);
-      console.log(`🌱 [Migration] УСПЕШНО! В отдельную таблицу Diseases импортировано ${externalDiseasesList.length} диагнозов.`);
-      console.log(`==================================================\n`);
+      console.log(logger.DatabaseMedMigrationInfo(`УСПЕШНО! В отдельную таблицу Diseases импортировано ${externalDiseasesList.length} диагнозов.`));
     } else {
-      console.log(`ℹ️ [Migration] Таблица Diseases уже содержит записи (${count} шт.). Импорт не требуется.`);
+      console.log(logger.DatabaseMedMigrationInfo(`Таблица Diseases уже содержит записи (${count} шт.). Импорт не требуется.`));
     }
-    
     process.exit(0);
   } catch (error) {
-    console.error('❌ [Migration] Критическая ошибка миграции справочника:', error);
+    console.log(logger.DatabaseMedMigrationError('Критическая ошибка миграции справочника:', error));
     process.exit(1);
   }
 }
-
 runMigration();

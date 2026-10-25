@@ -1,37 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboardStats();
 });
-
-// Загрузка статистики на карточки при старте
 async function loadDashboardStats() {
     try {
-        // ИСПРАВЛЕНИЕ ПУТИ ПОД ВАШУ АРХИТЕКТУРУ
         const response = await fetch('/med/api/admin/stats');
         const result = await response.json();
-
         if (!result.success) {
             alert('Ошибка доступа к админ-панели: ' + result.message);
-            window.location.href = '/med/med-login'; // Путь к логину, если сессия упала
+            window.location.href = '/med/html/login.html';
             return;
         }
-
         document.getElementById('statClinics').textContent = result.stats.summary.totalClinics;
         document.getElementById('statPatients').textContent = result.stats.summary.totalPatients;
         document.getElementById('statStaff').textContent = result.stats.summary.totalStaff;
-
-        // Автоматически обновляем выпадающий список клиник для формы 2
         await loadClinicsDropdown();
-
     } catch (err) {
         console.error('Ошибка загрузки статистики:', err);
     }
 }
-
-// Наполнение выпадающего списка (селекта) созданными клиниками из SQLite
 async function loadClinicsDropdown() {
     try {
-        // ИСПРАВЛЕНИЕ ПУТИ
-        const response = await fetch('/med/api/admin/list-clinics');
+                const response = await fetch('/med/api/admin/list-clinics');
         const result = await response.json();
         
         const select = document.getElementById('staffClinic');
@@ -40,8 +29,7 @@ async function loadClinicsDropdown() {
         if (result.success && result.data.length > 0) {
             result.data.forEach(clinic => {
                 const opt = document.createElement('option');
-                opt.value = clinic.id; // Передаст числовой ID (1, 2, 3...)
-                opt.textContent = `[ID: ${clinic.id}] ${clinic.name}`;
+                opt.value = clinic.id;                 opt.textContent = `[ID: ${clinic.id}] ${clinic.name}`;
                 select.appendChild(opt);
             });
         }
@@ -50,7 +38,6 @@ async function loadClinicsDropdown() {
     }
 }
 
-// Показать таблицу КЛИНИК с UID по клику на карточку
 async function viewClinicsTable() {
     const block = document.getElementById('tableViewerBlock');
     const title = document.getElementById('tableViewerTitle');
@@ -61,8 +48,7 @@ async function viewClinicsTable() {
     content.innerHTML = '<p>Загрузка таблицы...</p>';
 
     try {
-        // ИСПРАВЛЕНИЕ ПУТИ
-        const res = await fetch('/med/api/admin/list-clinics');
+                const res = await fetch('/med/api/admin/list-clinics');
         const result = await res.json();
 
         if (result.success && result.data.length > 0) {
@@ -98,8 +84,6 @@ async function viewClinicsTable() {
     }
 }
 
-// Показать таблицу ВРАЧЕЙ с UID по клику на карточку
-// Показать таблицу ПЕРСОНАЛА с UID, должностями и специальностями
 async function viewStaffTable() {
     const block = document.getElementById('tableViewerBlock');
     const title = document.getElementById('tableViewerTitle');
@@ -150,31 +134,24 @@ async function viewStaffTable() {
         content.innerHTML = '<p style="color:red;">Ошибка загрузки данных персонала</p>';
     }
 }
-
-
-// Задача 1: Форма создания клиники
 document.getElementById('clinicForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const payload = {
         name: document.getElementById('clinicName').value,
         type: document.getElementById('clinicType').value,
         address: document.getElementById('clinicAddress').value
     };
-
     try {
-        // ИСПРАВЛЕНИЕ ПУТИ
         const response = await fetch('/med/api/admin/clinics', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
         const result = await response.json();
         if (result.success) {
             alert(`Учреждение успешно добавлено в SQLite под ID №${result.data.id}!`);
             document.getElementById('clinicForm').reset();
-            await loadDashboardStats(); // Перезагрузит карточки и селект
+            await loadDashboardStats();
         } else {
             alert('Ошибка: ' + result.error);
         }
@@ -182,35 +159,28 @@ document.getElementById('clinicForm').addEventListener('submit', async (e) => {
         alert('Ошибка сети при создании клиники');
     }
 });
-
 document.getElementById('staffForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const clinicSelect = document.getElementById('staffClinic');
     const selectedClinicId = clinicSelect.value;
     const selectedProfile = document.getElementById('staffMedicalProfile').value;
-
     if (!selectedClinicId) {
         alert('Пожалуйста, выберите больницу из списка!');
         return;
     }
-
     const payload = {
         fullName: document.getElementById('staffName').value,
         email: document.getElementById('staffEmail').value,
         rawPassword: document.getElementById('staffPassword').value,
-        // Передаем выбранный профиль. Наш бэкенд сам разделит его на должность и специальность!
         medicalProfile: selectedProfile, 
         clinicId: parseInt(selectedClinicId, 10)
     };
-
     try {
         const response = await fetch('/med/api/admin/staff', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
         const result = await response.json();
         if (result.success) {
             alert(`Сотрудник успешно создан!\nПрофиль: ${selectedProfile}`);
@@ -223,10 +193,7 @@ document.getElementById('staffForm').addEventListener('submit', async (e) => {
         alert('Ошибка сети при создании сотрудника');
     }
 });
-
-
 async function logout() {
-    // ИСПРАВЛЕНИЕ ПУТИ
     await fetch('/med/api/auth/logout', { method: 'POST' });
     window.location.href = '/med/med-login';
 }

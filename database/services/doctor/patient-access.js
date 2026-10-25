@@ -1,17 +1,13 @@
-const User = require('../../models/users');
-const Appointment = require('../../models/appointments');
-const Disease = require('../../models/diseases');
-const UserAddress = require('../../models/user-addresses');
-
+const path = require("path");
+const User = require(path.join(__dirname, '..', '..', 'models', 'users'));
+const Appointment = require(path.join(__dirname, '..', '..', 'models', 'appointments'));
+const Disease = require(path.join(__dirname, '..', '..', 'models', 'diseases'));
+const UserAddress = require(path.join(__dirname, '..', '..', 'models', 'user-addresses'));
 const patientAccess = {
-  /**
-   * Получить медицинскую историю пациента для ознакомления врачом
-   */
   async getHistory(patientId) {
     if (!patientId) {
       throw new Error('ID пациента не указан');
     }
-
     const patient = await User.findByPk(patientId, {
       attributes: ['id', 'fullName', 'email'],
       include: [
@@ -29,13 +25,10 @@ const patientAccess = {
       ],
       order: [[{ model: Appointment, as: 'PatientAppointments' }, 'date', 'DESC']]
     });
-
     if (!patient) {
       throw new Error('Пациент не найден в базе данных');
     }
-
     return patient;
   }
 };
-
 module.exports = patientAccess;
