@@ -99,6 +99,7 @@ async function viewClinicsTable() {
 }
 
 // Показать таблицу ВРАЧЕЙ с UID по клику на карточку
+// Показать таблицу ПЕРСОНАЛА с UID, должностями и специальностями
 async function viewStaffTable() {
     const block = document.getElementById('tableViewerBlock');
     const title = document.getElementById('tableViewerTitle');
@@ -109,7 +110,6 @@ async function viewStaffTable() {
     content.innerHTML = '<p>Загрузка таблицы...</p>';
 
     try {
-        // ИСПРАВЛЕНИЕ ПУТИ
         const res = await fetch('/med/api/admin/list-staff');
         const result = await res.json();
 
@@ -121,7 +121,8 @@ async function viewStaffTable() {
                             <th>ID Сотрудника</th>
                             <th>ФИО</th>
                             <th>Email</th>
-                            <th>Специальность</th>
+                            <th>Должность</th> <!-- Новая колонка -->
+                            <th>Специализация</th>
                             <th>Место работы</th>
                         </tr>
                     </thead>
@@ -134,7 +135,8 @@ async function viewStaffTable() {
                         <td><span class="uid-badge">${s.id}</span></td>
                         <td><b>${s.fullName}</b></td>
                         <td>${s.email}</td>
-                        <td>${s.specialty}</td>
+                        <td><span class="badge" style="background:#f1f5f9; color:#475569;">${s.position || 'Врач'}</span></td> <!-- Выводим должность -->
+                        <td>${s.specialty || 'Нет'}</td>
                         <td>${clinicName}</td>
                     </tr>
                 `;
@@ -142,12 +144,13 @@ async function viewStaffTable() {
             html += '</tbody></table>';
             content.innerHTML = html;
         } else {
-            content.innerHTML = '<p>В штате системы пока нет зарегистрированных врачей.</p>';
+            content.innerHTML = '<p>В штате системы пока нет зарегистрированных сотрудников.</p>';
         }
     } catch (err) {
         content.innerHTML = '<p style="color:red;">Ошибка загрузки данных персонала</p>';
     }
 }
+
 
 // Задача 1: Форма создания клиники
 document.getElementById('clinicForm').addEventListener('submit', async (e) => {
@@ -180,15 +183,15 @@ document.getElementById('clinicForm').addEventListener('submit', async (e) => {
     }
 });
 
-// Задача 2: Форма создания врача
 document.getElementById('staffForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const clinicSelect = document.getElementById('staffClinic');
     const selectedClinicId = clinicSelect.value;
+    const selectedProfile = document.getElementById('staffMedicalProfile').value;
 
     if (!selectedClinicId) {
-        alert('Пожалуйста, сначала создайте хотя бы одну клинику и выберите её из списка!');
+        alert('Пожалуйста, выберите больницу из списка!');
         return;
     }
 
@@ -196,12 +199,12 @@ document.getElementById('staffForm').addEventListener('submit', async (e) => {
         fullName: document.getElementById('staffName').value,
         email: document.getElementById('staffEmail').value,
         rawPassword: document.getElementById('staffPassword').value,
-        specialty: document.getElementById('staffSpecialty').value,
+        // Передаем выбранный профиль. Наш бэкенд сам разделит его на должность и специальность!
+        medicalProfile: selectedProfile, 
         clinicId: parseInt(selectedClinicId, 10)
     };
 
     try {
-        // ИСПРАВЛЕНИЕ ПУТИ
         const response = await fetch('/med/api/admin/staff', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -210,16 +213,17 @@ document.getElementById('staffForm').addEventListener('submit', async (e) => {
 
         const result = await response.json();
         if (result.success) {
-            alert(`Аккаунт врача "${result.data.fullName}" успешно создан!`);
+            alert(`Сотрудник успешно создан!\nПрофиль: ${selectedProfile}`);
             document.getElementById('staffForm').reset();
             await loadDashboardStats();
         } else {
-            alert('Ошибка: ' + result.error);
+            alert('Ошибка создания: ' + result.error);
         }
     } catch (err) {
         alert('Ошибка сети при создании сотрудника');
     }
 });
+
 
 async function logout() {
     // ИСПРАВЛЕНИЕ ПУТИ

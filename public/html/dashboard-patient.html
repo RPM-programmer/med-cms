@@ -30,6 +30,39 @@
         </header>
 
         <div class="grid">
+            <!-- Блок формы записи на прием к врачу -->
+<div class="section-box" style="border-top: 4px solid #2563eb;">
+    <h3>📅 Запись на прием к врачу</h3>
+    <form id="bookingForm">
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label>Выберите специалиста</label>
+            <select id="bookingDoctor" required>
+                <option value="">-- Загрузка списка врачей... --</option>
+            </select>
+        </div>
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Дата приема</label>
+                <input type="date" id="bookingDate" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Время (Слот)</label>
+                <select id="bookingTime" required>
+                    <option value="">-- Время --</option>
+                    <option value="08:00">08:00</option>
+                    <option value="08:30">08:30</option>
+                    <option value="09:00">09:00</option>
+                    <option value="09:30">09:30</option>
+                    <option value="10:00">10:00</option>
+                    <option value="14:00">14:00</option>
+                    <option value="14:30">14:30</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn" style="padding: 10px; background-color: #2563eb;">Забронировать талон</button>
+    </form>
+</div>
+
             <!-- Блок 1: Адрес проживания и Автовычисление участка -->
             <div class="section-box">
                 <h3>📍 Мой медицинский участок</h3>

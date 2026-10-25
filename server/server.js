@@ -165,6 +165,88 @@ api.get('/admin/list-staff', verifyCookie, requireRole(['admin']), async (req, r
     res.status(500).json({ success: false, error: err.message });
   }
 });
+  // 1. Получить список всех доступных врачей для записи (Публично для пациентов)
+  api.get('/patient/doctors-list', verifyCookie, requireRole(['patient']), async (req, res) => {
+    try {
+      const User = require('../database/models/users');
+      const Clinic = require('../database/models/clinics');
+      
+      const doctors = await User.findAll({
+        where: { role: 'doctor' },
+        attributes: ['id', 'fullName', 'specialty'],
+        include: [{ model: Clinic, attributes: ['name', 'address'] }]
+      });
+      res.json({ success: true, data: doctors });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // 2. Создать новую запись на прием (Бронирование талона)
+  api.post('/patient/book', verifyCookie, requireRole(['patient']), async (req, res) => {
+    try {
+      // ID пациента безопасно берем из расшифрованной HttpOnly-куки (req.user.id)
+      const patientId = req.user.id;
+      
+      const appointment = await PatientService.bookAppointment(patientId, req.body);
+      res.status(212).json({ success: true, data: appointment });
+    } catch (err) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  });
+  // ИСПРАВЛЕНИЕ: Добавляем 'admin' в requireRole, чтобы при тесте под админом справочник подгружался!
+  api.get('/doctor/diseases-list', verifyCookie, requireRole(['doctor', 'admin']), async (req, res) => {
+    try {
+      const Disease = require('../database/models/diseases');
+      const diseases = await Disease.findAll({ order: [['name', 'ASC']] });
+      res.json({ success: true, data: diseases });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+  // API Смены пароля для любого авторизованного пользователя (Врач, Пациент, Админ)
+  api.post('/auth/change-password', verifyCookie, async (req, res) => {
+    try {
+      const { oldPassword, newPassword } = req.body;
+      const userId = req.user.id; // Берем ID строго из HttpOnly куки
+
+      if (!oldPassword || !newPassword) {
+        throw new Error('Необходимо указать старый и новый пароли');
+      }
+
+      // Ищем пользователя в базе
+      const user = await User.findByPk(userId);
+      if (!user) throw new Error('Пользователь не найден');
+
+      // Сверяем старый пароль с хешем в БД
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: 'Старый пароль введен неверно' });
+      }
+
+      // Хешируем новый пароль перед записью в SQLite
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Обновляем пароль и снимаем флаг временного пароля
+      await user.update({
+        password: hashedNewPassword,
+        isTemporaryPassword: false
+      });
+      res.json({ success: true, message: 'Пароль успешно изменен' });
+    } catch (err) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  });
+
+  // Обновим также роут выгрузки расписания, чтобы он отдавал данные о вошедшем враче для шапки кабинета
+  api.get('/doctor/me', verifyCookie, requireRole(['doctor']), async (req, res) => {
+    try {
+      const doctorData = await User.findByPk(req.user.id, { attributes: ['fullName', 'position', 'specialty'] });
+      res.json({ success: true, doctor: doctorData });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
 
 
   return {web:web, api:api};

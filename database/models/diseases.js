@@ -5,33 +5,32 @@ const sequelize = getSequelizeInstance();
 
 const Disease = sequelize.define('Disease', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.INTEGER,
+    autoIncrement: true, // База данных сама ставит 1, 2, 3...
     primaryKey: true
   },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
+  name: { 
+    type: DataTypes.STRING, 
+    allowNull: false, 
+    unique: true 
   },
-  code: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true // Код по классификатору МКБ
+  code: { 
+    type: DataTypes.STRING, 
+    allowNull: false, 
+    unique: true // Код МКБ-10
   },
-  treatmentRecommendations: {
-    type: DataTypes.TEXT,
-    allowNull: true
+  treatmentRecommendations: { 
+    type: DataTypes.TEXT, 
+    allowNull: true 
   },
-  recommendedMedications: {
-    type: DataTypes.TEXT,
-    allowNull: true
+  recommendedMedications: { 
+    type: DataTypes.TEXT, 
+    allowNull: true 
   },
-  // Статистический счетчик заболеваемости по системе
-  casesCount: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
+  casesCount: { 
+    type: DataTypes.INTEGER, 
+    defaultValue: 0, 
+    allowNull: false 
   }
 }, {
   timestamps: true

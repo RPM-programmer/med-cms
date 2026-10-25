@@ -50,26 +50,73 @@
                 </form>
             </div>
 
-            <!-- Форма 2: Добавление врача -->
+                        <!-- Задача 2: Зарегистрировать сотрудника (Выпадающий список) -->
             <div class="form-box">
                 <h3>2. Зарегистрировать сотрудника (Выдача аккаунта)</h3>
                 <form id="staffForm">
-                    <input type="text" id="staffName" placeholder="ФИО сотрудника" required>
+                    <input type="text" id="staffName" placeholder="ФИО сотрудника (Иванов И.И.)" required>
                     <input type="email" id="staffEmail" placeholder="Рабочий Email" required>
-                    <input type="text" id="staffPassword" placeholder="Временный пароль для врача" required>
+                    <input type="text" id="staffPassword" placeholder="Временный пароль для входа" required>
                     
-                    <select id="staffSpecialty" required>
-                        <option value="Терапевт">Терапевт</option>
-                        <option value="Педиатр">Педиатр</option>
-                        <option value="Хирург">Хирург</option>
-                        <option value="Кардиохирург">Кардиохирург</option>
-                        <option value="Патологоанатом">Патологоанатом</option>
-                    </select>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Должность / Специальность</label>
+                        <select id="staffMedicalProfile" required>
+                            <option value="">-- Выберите профиль сотрудника --</option>
+                            <!-- Административный и средний персонал -->
+                            <option value="Главврач">Главврач</option>
+                            <option value="Медсестра">Медсестра</option>
+                            <option value="Врач скорой помощи">Врач скорой помощи</option>
+                            <option value="Фельдшер">Фельдшер</option>
+                            <option value="Регистратор">Регистратор</option>
+                            <!-- 34 Врачебные специальности -->
+                            <option value="Терапевт">Терапевт</option>
+                            <option value="Педиатр">Педиатр</option>
+                            <option value="Врач общей практики">Врач общей практики</option>
+                            <option value="Кардиолог">Кардиолог</option>
+                            <option value="Невролог">Невролог</option>
+                            <option value="Эндокринолог">Эндокринолог</option>
+                            <option value="Гастроэнтеролог">Гастроэнтеролог</option>
+                            <option value="Пульмонолог">Пульмонолог</option>
+                            <option value="Нефролог">Нефролог</option>
+                            <option value="Ревматолог">Ревматолог</option>
+                            <option value="Гематолог">Гематолог</option>
+                            <option value="Хирург">Хирург</option>
+                            <option value="Травматолог-ортопед">Травматолог-ортопед</option>
+                            <option value="Сосудистый хирург">Сосудистый хирург</option>
+                            <option value="Нейрохирург">Нейрохирург</option>
+                            <option value="Кардиохирург">Кардиохирург</option>
+                            <option value="Пластический хирург">Пластический хирург</option>
+                            <option value="Офтальмолог">Офтальмолог</option>
+                            <option value="Отоларинголог">Отоларинголог</option>
+                            <option value="Дерматолог">Дерматолог</option>
+                            <option value="Стоматолог">Стоматолог</option>
+                            <option value="Гинеколог">Гинеколог</option>
+                            <option value="Уролог">Уролог</option>
+                            <option value="Онколог">Онколог</option>
+                            <option value="Инфекционист">Инфекционист</option>
+                            <option value="Аллерголог-иммунолог">Аллерголог-иммунолог</option>
+                            <option value="Психиатр">Психиатр</option>
+                            <option value="Психотерапевт">Психотерапевт</option>
+                            <option value="Нарколог">Нарколог</option>
+                            <option value="Анестезиолог-реаниматолог">Анестезиолог-реаниматолог</option>
+                            <option value="Рентгенолог">Рентгенолог</option>
+                            <option value="Врач УЗД">Врач УЗД</option>
+                            <option value="Эндоскопист">Эндоскопист</option>
+                            <option value="Патологоанатом">Патологоанатом</option>
+                        </select>
+                    </div>
                     
-                    <input type="text" id="staffClinic" placeholder="Введите UID клиники (Брать из таблицы выше)" required>
-                    <button type="submit">Создать аккаунт врача</button>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Больница привязки</label>
+                        <select id="staffClinic" required>
+                            <option value="">-- Выберите больницу --</option>
+                        </select>
+                    </div>
+
+                    <button type="submit">Создать аккаунт сотрудника</button>
                 </form>
             </div>
+
         </div>
     </div>
     <script src="/med/js/admin.js"></script>

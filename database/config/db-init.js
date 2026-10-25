@@ -9,7 +9,7 @@ function getSequelizeInstance(dbPath) {
     sequelize = new Sequelize({
       dialect: 'sqlite',
       storage: storagePath,
-      logging: false // Отключаем логи SQL-запросов в консоли для чистоты
+      logging: false
     });
   }
   return sequelize;
@@ -22,14 +22,14 @@ async function initDatabase(dbPath) {
     await instance.authenticate();
     console.log('✅ [Med Module] Успешное подключение к SQLite через Sequelize.');
 
-    // Импортируем модели для инициализации их связей
+    // Импортируем модели
     const Clinic = require('../models/clinics');
     const User = require('../models/users');
     const UserAddress = require('../models/user-addresses');
     const Disease = require('../models/diseases');
     const Appointment = require('../models/appointments');
 
-    // Настройка связей (Associations)
+    // Настройка связей
     User.belongsTo(Clinic, { foreignKey: 'ClinicId', onDelete: 'SET NULL' });
     Clinic.hasMany(User, { foreignKey: 'ClinicId' });
 
@@ -39,14 +39,10 @@ async function initDatabase(dbPath) {
     Appointment.belongsTo(User, { as: 'Patient', foreignKey: 'PatientId', onDelete: 'CASCADE' });
     Appointment.belongsTo(User, { as: 'Doctor', foreignKey: 'DoctorId', onDelete: 'CASCADE' });
     Appointment.belongsTo(Disease, { foreignKey: 'DiseaseId', onDelete: 'SET NULL' });
-    
-    User.hasMany(Appointment, { as: 'PatientAppointments', foreignKey: 'PatientId' });
-    User.hasMany(Appointment, { as: 'DoctorAppointments', foreignKey: 'DoctorId' });
 
-    // Синхронизируем структуру с файлом базы данных.
-    // alter: true бережно модифицирует таблицы при добавлении новых полей
+    // Синхронизируем чистые таблицы БЕЗ встроенных сидов
     await instance.sync({ alter: true });
-    console.log('✅ [Med Module] Все таблицы базы данных и связи успешно синхронизированы.');
+    console.log('✅ [Med Module] Все таблицы базы данных успешно синхронизированы.');
 
   } catch (error) {
     console.error('❌ [Med Module] Ошибка инициализации базы данных:', error);

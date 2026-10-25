@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     loadPatientData();
+    loadDoctorsForBooking();
 });
 
 // 1. Загрузка всех данных пациента одной транзакцией с бэкенда
@@ -114,3 +115,58 @@ async function logout() {
     await fetch('/med-api/auth/logout', { method: 'POST' });
     window.location.href = '/med/html/login.html';
 }
+async function loadDoctorsForBooking() {
+    try {
+        const response = await fetch('/med/api/patient/doctors-list');
+        const result = await response.json();
+        
+        const select = document.getElementById('bookingDoctor');
+        select.innerHTML = '<option value="">-- Выберите врача --</option>';
+
+        if (result.success && result.data.length > 0) {
+            result.data.forEach(doc => {
+                const opt = document.createElement('option');
+                opt.value = doc.id; // Передаст ID врача (например, 2)
+                const clinicInfo = doc.Clinic ? ` (${doc.Clinic.name})` : '';
+                opt.textContent = `${doc.specialty} — ${doc.fullName}${clinicInfo}`;
+                select.appendChild(opt);
+            });
+        } else {
+            select.innerHTML = '<option value="">Врачи пока не зарегистрированы в CMS</option>';
+        }
+    } catch (err) {
+        console.error('Ошибка загрузки врачей:', err);
+    }
+}
+
+// Обработка отправки формы бронирования приема
+document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const payload = {
+        doctorId: document.getElementById('bookingDoctor').value,
+        date: document.getElementById('bookingDate').value,
+        time: document.getElementById('bookingTime').value
+    };
+
+    try {
+        const response = await fetch('/med/api/patient/book', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Вы успешно записаны на прием! Талон добавлен в вашу медицинскую карту.');
+            document.getElementById('bookingForm').reset();
+            // Перезагружаем профиль, чтобы талон мгновенно появился в блоке «Предстоящие приемы»
+            await loadPatientData(); 
+        } else {
+            alert('Ошибка бронирования: ' + result.error);
+        }
+    } catch (err) {
+        alert('Ошибка сети при попытке записи');
+    }
+});

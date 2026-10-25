@@ -1,12 +1,11 @@
-const calcDistrict = require('./cals-district.js');
+const calcDistrict = require('./calc-district');
 const getProfile = require('./get-profile');
+const bookAppointment = require('./book-appointment'); // Подключаем
 
 const PatientService = {
-  // Управление адресом и автоматический расчёт участков
   savePatientAddress: calcDistrict.saveAddress.bind(calcDistrict),
-  
-  // Выгрузка всей личной информации и истории болезни для пациента
-  getFullMyData: getProfile.getFullData
+  getFullMyData: getProfile.getFullData,
+  bookAppointment: bookAppointment.create.bind(bookAppointment) // Экспортируем
 };
 
 module.exports = PatientService;
