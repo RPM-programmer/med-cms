@@ -91,7 +91,7 @@ function startExamination(appointmentId, patientName) {
 
 async function logout() {
         await fetch('/med/api/auth/logout', { method: 'POST' });
-    window.location.href = '/med/med-login';
+    window.location.href = '/med/html/login.html';
 }
 async function loadDoctorProfile() {
     try {

@@ -2,23 +2,16 @@ const express = require('express');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-// Импортируем проинициализированный объект базы со всеми готовыми моделями
 const db = require(path.join(__dirname, '..', 'database', 'config', 'db-init.js'));
-
 const createMiddleware = require(path.join(__dirname, 'midleware'));
 const { MED_PERMISSIONS } = require(path.join(__dirname, 'permissions'));
 const AdminService = require(path.join(__dirname, '..', 'database', 'services', 'admin'));
 const DoctorService = require(path.join(__dirname, '..', 'database', 'services', 'doctor'));
 const PatientService = require(path.join(__dirname, '..', 'database', 'services', 'patient'));
-
 function createMedRouter(jwtSecret) {
   const api = express.Router();
   const web = express.Router();
-  
-  // Достаем готовые к работе модели из объекта db
   const { User, Disease, Clinic } = db;
-
   web.use("/", express.static(path.join(__dirname, "..", "public")));
   const { verifyCookie, requireRole, checkPermission } = createMiddleware(jwtSecret);
 
@@ -68,7 +61,6 @@ function createMedRouter(jwtSecret) {
   web.get('/med-patient', verifyCookie, requireRole(['patient']), (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'html', 'dashboard-patient.html'));
   });
-
   api.get('/patient/me', verifyCookie, async (req, res) => {
     try {
       const fullData = await PatientService.getFullMyData(req.user.id);
@@ -77,7 +69,6 @@ function createMedRouter(jwtSecret) {
       res.status(500).json({ success: false, error: err.message });
     }
   });
-
   api.post('/patient/address', verifyCookie, async (req, res) => {
     try {
       const updatedAddress = await PatientService.savePatientAddress(req.user.id, req.body);
@@ -164,10 +155,8 @@ function createMedRouter(jwtSecret) {
       res.status(500).json({ success: false, error: err.message });
     }
   });
-
   api.get('/admin/list-clinics', verifyCookie, requireRole(['admin']), async (req, res) => {
     try {
-      // ИСПРАВЛЕНИЕ: берем Clinic из инстанса базы данных, а не сырой файл функции
       const clinics = await Clinic.findAll({ order: [['name', 'ASC']] });
       res.json({ success: true, data: clinics });
     } catch (err) {
@@ -177,7 +166,6 @@ function createMedRouter(jwtSecret) {
 
   api.get('/admin/list-staff', verifyCookie, requireRole(['admin']), async (req, res) => {
     try {
-      // ИСПРАВЛЕНИЕ: Используем проинициализированные модули для include отношений
       const staff = await User.findAll({
         where: { role: 'doctor' },
         include: [{ model: Clinic, attributes: ['name'] }],
@@ -214,7 +202,6 @@ function createMedRouter(jwtSecret) {
 
   api.get('/doctor/diseases-list', verifyCookie, requireRole(['doctor', 'admin']), async (req, res) => {
     try {
-      // ИСПРАВЛЕНИЕ: Используем готовую модель Disease
       const diseases = await Disease.findAll({ order: [['name', 'ASC']] });
       res.json({ success: true, data: diseases });
     } catch (err) {
@@ -251,14 +238,86 @@ function createMedRouter(jwtSecret) {
     }
   });
 
-  api.get('/doctor/me', verifyCookie, requireRole(['doctor']), async (req, res) => {
+    api.get('/doctor/me', verifyCookie, requireRole(['doctor']), async (req, res) => {
     try {
-      const doctorData = await User.findByPk(req.user.id, { attributes: ['fullName', 'position', 'specialty'] });
+      // Используем модель User, полученную онлайн из db
+      const doctorData = await User.findByPk(req.user.id, { 
+        attributes: ['fullName', 'position', 'specialty'] 
+      });
       res.json({ success: true, doctor: doctorData });
-} catch (err) {
-res.status(500).json({ success: false, error: err.message });
-}
-});
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  api.post('/admin/districts', verifyCookie, requireRole(['admin']), async (req, res) => {
+    try {
+      const { name, cabinet, doctorName, coveredStreets, clinicId } = req.body;
+      
+      if (!name || !cabinet || !coveredStreets || !clinicId) {
+        throw new Error('Заполните обязательные поля: название, кабинет, улицы, ID клиники');
+      }
+
+      const clinic = await Clinic.findByPk(clinicId);
+      if (!clinic) throw new Error('Указанная клиника не найдена');
+
+      const newDistrict = await District.create({
+        name,
+        cabinet,
+        doctorName,
+        coveredStreets,
+        ClinicId: Number(clinicId)
+      });
+
+      res.status(201).json({ success: true, data: newDistrict });
+    } catch (err) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  });
+  api.get('/admin/districts/:clinicId', verifyCookie, requireRole(['admin']), async (req, res) => {
+    try {
+      const list = await District.findAll({
+        where: { ClinicId: req.params.clinicId },
+        order: [['name', 'ASC']]
+      });
+      res.json({ success: true, data: list });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+    // 1. ПУБЛИЧНЫЙ: Получить список всех новостей (Для главной страницы — БЕЗ авторизации)
+  api.get('/public/news-list', async (req, res) => {
+    try {
+      const { News } = db;
+      // Сортируем новости: сначала самые свежие
+      const news = await News.findAll({ order: [['createdAt', 'DESC']] });
+      res.json({ success: true, data: news });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+  api.post('/admin/news', verifyCookie, requireRole(['admin']), async (req, res) => {
+    try {
+      const { News } = db;
+      const { title, content } = req.body;
+      if (!title || !content) throw new Error('Заполните заголовок и текст новости');
+
+      const newPost = await News.create({ title, content });
+      res.status(201).json({ success: true, data: newPost });
+    } catch (err) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  });
+  api.delete('/admin/news/:id', verifyCookie, requireRole(['admin']), async (req, res) => {
+    try {
+      const { News } = db;
+      await News.destroy({ where: { id: req.params.id } });
+      res.json({ success: true, message: 'Новость удалена' });
+    } catch (err) {
+      res.status(400).json({ success: false, error: err.message });
+    }
+  });
+
 return {web:web, api:api};
 }
 module.exports = createMedRouter;

@@ -1,8 +1,11 @@
-const logger = require("custom-color-logs");
-const chalk = require("chalk-palette");
 const path = require('path');
-const { initDatabase } = require(path.join(__dirname, 'database', 'config', 'db-init'));
-const Disease = require(path.join(__dirname, 'database', 'models', 'diseases'));
+const fs = require('fs'); // ИСПРАВЛЕНИЕ: Добавлен обязательный импорт fs
+const logger = require("custom-color-logs").print;
+
+// Импортируем синглтон конфигурации базы данных
+const dbConfig = require(path.join(__dirname, "database", "config", "db-init.js"));
+
+// Расширенный список распространенных в РБ диагнозов
 const externalDiseasesList = [
   { 
     name: 'Острая респираторная вирусная инфекция (ОРВИ) верхних дыхательных путей', 
@@ -113,22 +116,41 @@ const externalDiseasesList = [
     recommendedMedications: 'Адаптол (Мебикар), Магний B6, пустырника экстракт' 
   }
 ];
+
 async function runMigration() {
   try {
-    console.log(logger.DatabaseMedMigrationInfo('Подключение к базе данных для импорта справочника...'));
-    await initDatabase(path.join(__dirname, "db", "med-cms.sqlite"));
-    console.log(logger.DatabaseMedMigrationInfo('Проверка текущего состояния таблицы Diseases...'));
-    const count = await Disease.count();
-    if (count === 0) {
-      await Disease.bulkCreate(externalDiseasesList);
-      console.log(logger.DatabaseMedMigrationInfo(`УСПЕШНО! В отдельную таблицу Diseases импортировано ${externalDiseasesList.length} диагнозов.`));
-    } else {
-      console.log(logger.DatabaseMedMigrationInfo(`Таблица Diseases уже содержит записи (${count} шт.). Импорт не требуется.`));
+    const dbPath = path.join(__dirname, "db", "med-cms.sqlite");
+    
+    // Проверяем и создаем папку для базы, если её нет
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
     }
+
+    console.log(logger.ServerMedInfo("MIGRATION: Подключение к базе данных для импорта справочника..."));
+    
+    // Инициализируем фабричную БД
+    await dbConfig.initDatabase(dbPath);
+
+    // ИСПРАВЛЕНИЕ: Достаем проинициализированную модель Disease из синглтона базы данных онлайн
+    const Disease = dbConfig.models.Disease || dbConfig.Disease;
+
+    console.log(logger.ServerMedInfo("MIGRATION: Проверка текущего состояния таблицы Diseases..."));
+    const count = await Disease.count();
+    
+    if (count === 0) {
+      // Массово заливаем массив в чистую таблицу
+      await Disease.bulkCreate(externalDiseasesList);
+      console.log(logger.ServerMedInfo(`🌱 MIGRATION: УСПЕШНО! В отдельную таблицу Diseases импортировано ${externalDiseasesList.length} диагнозов РБ.`));
+    } else {
+      console.log(logger.ServerMedInfo(`ℹ️ MIGRATION: Таблица Diseases уже содержит записи (${count} шт.). Импорт пропущен.`));
+    }
+    
     process.exit(0);
   } catch (error) {
-    console.log(logger.DatabaseMedMigrationError('Критическая ошибка миграции справочника:', error));
+    console.log(logger.ServerMedError("MIGRATION: Критическая ошибка миграции справочника: " + error.stack));
     process.exit(1);
   }
 }
+
 runMigration();

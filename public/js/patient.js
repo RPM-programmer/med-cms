@@ -2,18 +2,24 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPatientData();
     loadDoctorsForBooking();
 });
+
 async function loadPatientData() {
     try {
         const response = await fetch('/med/api/patient/me');
         const result = await response.json();
+        
         if (!result.success) {
-            alert('Ошибка загрузки данных: ' + result.message);
-            window.location.href = '/med/html/login.html';
+            // ИСПРАВЛЕНИЕ: Читаем result.error (как отдает бэкенд), либо result.message
+            const errorText = result.error || result.message || 'Неизвестная ошибка';
+            alert('Ошибка загрузки данных: ' + errorText);
+            window.location.href = '/med/med-login'; // Перенаправляем на правильный веб-роут входа
             return;
         }
+        
         const data = result.data;
         document.getElementById('patientName').textContent = data.personalInfo.fullName;
         document.getElementById('patientEmail').textContent = data.personalInfo.email;
+        
         const districtInfo = document.getElementById('districtInfo');
         if (data.personalInfo.UserAddress) {
             const addr = data.personalInfo.UserAddress;
@@ -26,8 +32,10 @@ async function loadPatientData() {
             document.getElementById('addrStreet').value = addr.street;
             document.getElementById('addrHouse').value = addr.houseNumber;
         }
+        
         const historyContainer = document.getElementById('medicalHistoryList');
         historyContainer.innerHTML = '';
+        
         if (data.medicalHistory && data.medicalHistory.length > 0) {
             data.medicalHistory.forEach(record => {
                 const card = document.createElement('div');
@@ -63,8 +71,10 @@ async function loadPatientData() {
         }
     } catch (err) {
         console.error('Ошибка связи с сервером:', err);
+        alert('Критическая ошибка фронтенда при разборе JSON');
     }
 }
+
 document.getElementById('addressForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const payload = {
@@ -89,10 +99,13 @@ document.getElementById('addressForm').addEventListener('submit', async (e) => {
         alert('Ошибка сети при отправке адреса');
     }
 });
+
 async function logout() {
-    await fetch('/med-api/auth/logout', { method: 'POST' });
-    window.location.href = '/med/html/login.html';
+    // ИСПРАВЛЕНИЕ: Исправлен путь логаута на абсолютный /med/api
+    await fetch('/med/api/auth/logout', { method: 'POST' });
+    window.location.href = '/med/med-login';
 }
+
 async function loadDoctorsForBooking() {
     try {
         const response = await fetch('/med/api/patient/doctors-list');
@@ -114,6 +127,7 @@ async function loadDoctorsForBooking() {
         console.error('Ошибка загрузки врачей:', err);
     }
 }
+
 document.getElementById('bookingForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const payload = {

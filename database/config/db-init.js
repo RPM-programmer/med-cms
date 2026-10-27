@@ -1,3 +1,5 @@
+// Полностью рабочий database/config/db-init.js с динамическим расширением модели
+
 const { Sequelize, DataTypes } = require('sequelize');
 const path = require('path');
 const logger = require("custom-color-logs").print;
@@ -16,48 +18,13 @@ function getSequelizeInstance(dbPath) {
   return sequelize;
 }
 
-async function initDatabase(dbPath) {
-  const instance = getSequelizeInstance(dbPath);
-  
-  try {
-    await instance.authenticate();
-    console.log(logger.DatabaseMedInfo("Успешное подключение к SQLite через Sequelize."));
-
-    // 1. Импортируем функции моделей и сразу инициализируем их инстансом sequelize
-    const models = {
-      Clinic: require(path.join(__dirname, '..', 'models', 'clinics'))(instance, DataTypes),
-      User: require(path.join(__dirname, '..', 'models', 'users'))(instance, DataTypes),
-      UserAddress: require(path.join(__dirname, '..', 'models', 'user-addresses'))(instance, DataTypes),
-      Disease: require(path.join(__dirname, '..', 'models', 'diseases'))(instance, DataTypes),
-      Appointment: require(path.join(__dirname, '..', 'models', 'appointments'))(instance, DataTypes)
-    };
-
-    // 2. Автоматически запускаем связи, которые мы прописали внутри файлов таблиц
-    Object.keys(models).forEach((modelName) => {
-      if (models[modelName].associate) {
-        models[modelName].associate(models);
-      }
-    });
-
-    await instance.sync({ alter: true });
-    console.log(logger.DatabaseMedInfo("Все таблицы базы данных успешно синхронизированы."));
-  } catch (error) {
-    console.log(logger.DatabaseMedError('Ошибка инициализации базы данных:', error));
-    throw error;
-  }
-}
-
-// В самом конце вашего database/config/db-init.js вместо старого exports:
-
 const db = {
   getSequelizeInstance,
   initDatabase,
   get sequelize() { return sequelize; },
-  // Динамически прокидываем модели наружу, чтобы они были доступны как db.User, db.Clinic и т.д.
   models: {} 
 };
 
-// Перепишем функцию initDatabase, чтобы она сохраняла модели в db.models и самом объекте db
 async function initDatabase(dbPath) {
   const instance = getSequelizeInstance(dbPath);
   
@@ -65,20 +32,43 @@ async function initDatabase(dbPath) {
     await instance.authenticate();
     console.log(logger.DatabaseMedInfo("Успешное подключение к SQLite через Sequelize."));
 
-    // Инициализируем и сохраняем в объект
+    // 1. Инициализируем базовые модели из фабрик
     db.models.Clinic = db.Clinic = require(path.join(__dirname, '..', 'models', 'clinics'))(instance, DataTypes);
     db.models.User = db.User = require(path.join(__dirname, '..', 'models', 'users'))(instance, DataTypes);
     db.models.UserAddress = db.UserAddress = require(path.join(__dirname, '..', 'models', 'user-addresses'))(instance, DataTypes);
     db.models.Disease = db.Disease = require(path.join(__dirname, '..', 'models', 'diseases'))(instance, DataTypes);
     db.models.Appointment = db.Appointment = require(path.join(__dirname, '..', 'models', 'appointments'))(instance, DataTypes);
+    db.models.District = db.District = require(path.join(__dirname, '..', 'models', 'districts'))(instance, DataTypes);
+    db.models.News = db.News = require(path.join(__dirname, '..', 'models', 'news'))(instance, DataTypes);
+    // =========================================================================
+    // 🔥 ДИНАМИЧЕСКИЙ ХАК: Расширяем модель User прямо в памяти до синхронизации!
+    // =========================================================================
+    
+    // А) Принудительно внедряем колонку должностей (position), которой нет в файле
+    db.User.rawAttributes.position = {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'Пациент'
+    };
+    db.User.refreshAttributes(); // Заставляем Sequelize пересобрать схему модели
 
-    // Запускаем связи
+    // Б) Снимаем жесткие ограничения ENUM с поля specialty, превращая его в гибкую строку
+    db.User.rawAttributes.specialty = {
+      type: DataTypes.STRING,
+      allowNull: true
+    };
+    db.User.refreshAttributes(); // Синхронизируем изменения атрибутов
+    
+    // =========================================================================
+
+    // 2. Безопасно запускаем связи (Associations) между всеми таблицами
     Object.keys(db.models).forEach((modelName) => {
       if (db.models[modelName].associate) {
         db.models[modelName].associate(db.models);
       }
     });
 
+    // 3. Синхронизируем базу данных с учётом динамически добавленных полей
     await instance.sync({ alter: true });
     console.log(logger.DatabaseMedInfo("Все таблицы базы данных успешно синхронизированы."));
   } catch (error) {

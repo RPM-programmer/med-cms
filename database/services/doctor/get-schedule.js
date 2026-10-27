@@ -1,16 +1,16 @@
-const path = require("path")
-const Appointment = require(path.join(__dirname, '..', '..', 'models', 'appointments'));
-const User = require(path.join(__dirname, '..', '..', 'models', 'users'));
+const path = require('path');
+const dbConfig = require(path.join(__dirname, '..', '..', 'config', 'db-init.js'));
+
 const getSchedule = {
   async byDoctorId(doctorId) {
-    if (!doctorId) {
-      throw new Error('ID врача не указан');
-    }
+    if (!doctorId) throw new Error('ID врача не указан');
+
+    // Достаем проинициализированные модели из синглтона
+    const Appointment = dbConfig.models.Appointment || dbConfig.Appointment;
+    const User = dbConfig.models.User || dbConfig.User;
+
     return await Appointment.findAll({
-      where: { 
-        DoctorId: doctorId, 
-        status: 'ожидается' 
-      },
+      where: { DoctorId: doctorId, status: 'ожидается' },
       include: [{ 
         model: User, 
         as: 'Patient', 
@@ -20,4 +20,5 @@ const getSchedule = {
     });
   }
 };
+
 module.exports = getSchedule;
