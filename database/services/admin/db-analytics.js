@@ -1,6 +1,8 @@
-const path = require('path');
+const path = require("path");
 // Импортируем только синглтон конфигурации базы данных
-const dbConfig = require(path.join(__dirname, '..', '..', 'config', 'db-init.js'));
+const dbConfig = require(
+  path.join(__dirname, "..", "..", "config", "db-init.js"),
+);
 
 const dbAnalytics = {
   /**
@@ -14,27 +16,32 @@ const dbAnalytics = {
     const Appointment = dbConfig.models.Appointment || dbConfig.Appointment;
 
     if (!Clinic || !User || !Disease || !Appointment) {
-      throw new Error('Критическая ошибка: Модели базы данных еще не проинициализированы!');
+      throw new Error(
+        "Критическая ошибка: Модели базы данных еще не проинициализированы!",
+      );
     }
 
     // Собираем агрегированные цифры для карточек админки через Sequelize
     const totalClinics = await Clinic.count();
-    const totalPatients = await User.count({ where: { role: 'patient' } });
-    const totalStaff = await User.count({ where: { role: 'doctor' } });
+    const totalPatients = await User.count({ where: { role: "patient" } });
+    const totalStaff = await User.count({ where: { role: "doctor" } });
     const totalAppointments = await Appointment.count();
 
     // Топ-5 самых частых болезней по инкрементируемому счетчику
     const topDiseases = await Disease.findAll({
       limit: 5,
-      order: [['casesCount', 'DESC']],
-      attributes: ['name', 'code', 'casesCount']
+      order: [["casesCount", "DESC"]],
+      attributes: ["name", "code", "casesCount"],
     });
 
     // Разбивка персонала по специальностям (для графиков или таблиц)
     const staffBySpecialty = await User.findAll({
-      where: { role: 'doctor' },
-      attributes: ['specialty', [User.sequelize.fn('COUNT', User.sequelize.col('id')), 'count']],
-      group: ['specialty']
+      where: { role: "doctor" },
+      attributes: [
+        "specialty",
+        [User.sequelize.fn("COUNT", User.sequelize.col("id")), "count"],
+      ],
+      group: ["specialty"],
     });
 
     return {
@@ -42,12 +49,12 @@ const dbAnalytics = {
         totalClinics,
         totalPatients,
         totalStaff,
-        totalAppointments
+        totalAppointments,
       },
       topDiseases,
-      staffBySpecialty
+      staffBySpecialty,
     };
-  }
+  },
 };
 
 module.exports = dbAnalytics;

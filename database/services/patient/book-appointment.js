@@ -1,5 +1,7 @@
-const path = require('path');
-const dbConfig = require(path.join(__dirname, '..', '..', 'config', 'db-init.js'));
+const path = require("path");
+const dbConfig = require(
+  path.join(__dirname, "..", "..", "config", "db-init.js"),
+);
 
 const bookAppointment = {
   /**
@@ -12,12 +14,16 @@ const bookAppointment = {
     const User = dbConfig.models.User || dbConfig.User;
 
     if (!doctorId || !date || !time) {
-      throw new Error('Необходимо выбрать врача, дату и время приема');
+      throw new Error("Необходимо выбрать врача, дату и время приема");
     }
 
-    const doctor = await User.findOne({ where: { id: doctorId, role: 'doctor' } });
+    const doctor = await User.findOne({
+      where: { id: doctorId, role: "doctor" },
+    });
     if (!doctor) {
-      throw new Error('Указанный сотрудник не найден или не имеет прав на прием');
+      throw new Error(
+        "Указанный сотрудник не найден или не имеет прав на прием",
+      );
     }
 
     const isSlotBusy = await Appointment.findOne({
@@ -25,8 +31,8 @@ const bookAppointment = {
         DoctorId: doctorId,
         date: date,
         time: time,
-        status: 'ожидается'
-      }
+        status: "ожидается",
+      },
     });
 
     if (isSlotBusy) {
@@ -38,8 +44,8 @@ const bookAppointment = {
         PatientId: patientId,
         DoctorId: doctorId,
         date: date,
-        status: 'ожидается'
-      }
+        status: "ожидается",
+      },
     });
 
     if (isPatientDoubleBooked) {
@@ -49,11 +55,11 @@ const bookAppointment = {
     return await Appointment.create({
       date,
       time,
-      status: 'ожидается',
+      status: "ожидается",
       PatientId: Number(patientId),
-      DoctorId: Number(doctorId)
+      DoctorId: Number(doctorId),
     });
-  }
+  },
 };
 
 module.exports = bookAppointment;

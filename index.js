@@ -1,22 +1,28 @@
-require("dotenv").config({debug:false});
-const express = require('express');
-const cookieParser = require('cookie-parser');
+require("dotenv").config({ debug: false });
+const express = require("express");
+const cookieParser = require("cookie-parser");
 const chalk = require("chalk-palette");
 const logger = require("custom-color-logs").print;
-const path = require('path');
-const fs = require('fs');
+const path = require("path");
+const fs = require("fs");
 
 // Оставляем только импорт самого модуля базы данных
-const dbConfig = require(path.join(__dirname, "database", "config", "db-init.js"));
-const server = require('./server/server');
-const bcrypt = require('bcrypt');
+const dbConfig = require(
+  path.join(__dirname, "database", "config", "db-init.js"),
+);
+const server = require("./server/server");
+const bcrypt = require("bcrypt");
 
 async function init(app) {
   await chalk.animation.textShimmer("MED-CMS");
   console.log(logger.ServerMedInfo("Запуск сервера..."));
-  await chalk.animation.retroLines({duration:4000, linesCount:4, offset:3});
+  await chalk.animation.retroLines({
+    duration: 4000,
+    linesCount: 4,
+    offset: 3,
+  });
 
-  if (app && typeof app === 'function' && typeof app.handle === 'function') {
+  if (app && typeof app === "function" && typeof app.handle === "function") {
     console.log(logger.ServerMedInfo("Проверка на app пройдена успешно!"));
   } else {
     console.log(logger.ServerMedError("app не передан или повреждён!"));
@@ -26,40 +32,57 @@ async function init(app) {
   try {
     const dbPath = path.join(__dirname, "db", "med-cms.sqlite");
     const dbDir = path.dirname(dbPath);
-    if (!fs.existsSync(dbDir)){
-        fs.mkdirSync(dbDir, { extended: true });
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { extended: true });
     }
-    
+
     // Инициализируем БД
     await dbConfig.initDatabase(dbPath);
     console.log(logger.ServerMedInfo("База данных успешно инициализирована"));
   } catch (err) {
-    console.log(logger.DatabaseError("Критическая ошибка запуска базы данных med-cms:", err));
+    console.log(
+      logger.DatabaseError(
+        "Критическая ошибка запуска базы данных med-cms:",
+        err,
+      ),
+    );
     return;
   }
 
   try {
     // ИСПРАВЛЕНИЕ: Достаем User из проинициализированного объекта базы данных ОНЛАЙН
-    const User = dbConfig.User; 
+    const User = dbConfig.User;
 
-    const adminExists = await User.findOne({ where: { role: 'admin' } });
+    const adminExists = await User.findOne({ where: { role: "admin" } });
     if (!adminExists) {
-      console.log(logger.ServerMedInfo("Администратор не найден. Создаю аккаунт по умолчанию..."));
+      console.log(
+        logger.ServerMedInfo(
+          "Администратор не найден. Создаю аккаунт по умолчанию...",
+        ),
+      );
       const adminPassword = "SuperAdminPassword2026";
       const hashedPassword = await bcrypt.hash(adminPassword, 10);
       await User.create({
         email: "admin@medcms.ru",
         password: hashedPassword,
         fullName: "Главный Администратор",
-        role: "admin",           
-        specialty: null          
+        role: "admin",
+        specialty: null,
       });
-      console.log(logger.ServerMedInfo(`Аккаунт суперадмина успешно создан in SQLite!`));
+      console.log(
+        logger.ServerMedInfo(`Аккаунт суперадмина успешно создан in SQLite!`),
+      );
     } else {
-      console.log(logger.ServerMedInfo("Администратор уже существует в базе данных."));
+      console.log(
+        logger.ServerMedInfo("Администратор уже существует в базе данных."),
+      );
     }
   } catch (error) {
-    console.log(logger.ServerMedError("Ошибка при автоматическом создании админа: " + error.message));
+    console.log(
+      logger.ServerMedError(
+        "Ошибка при автоматическом создании админа: " + error.message,
+      ),
+    );
   }
 
   console.log(logger.ServerMedInfo("Подключение роутов..."));

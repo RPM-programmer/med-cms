@@ -1,6 +1,8 @@
-const path = require('path');
+const path = require("path");
 // Импортируем синглтон конфигурации базы данных
-const dbConfig = require(path.join(__dirname, '..', '..', 'config', 'db-init.js'));
+const dbConfig = require(
+  path.join(__dirname, "..", "..", "config", "db-init.js"),
+);
 
 const getProfile = {
   /**
@@ -8,7 +10,7 @@ const getProfile = {
    */
   async getFullData(patientId) {
     if (!patientId) {
-      throw new Error('ID пациента не указан');
+      throw new Error("ID пациента не указан");
     }
 
     // Безопасно достаем проинициализированные модели
@@ -19,17 +21,23 @@ const getProfile = {
 
     // 1. Ищем профиль пользователя с адресом
     const profile = await User.findByPk(patientId, {
-      attributes: { exclude: ['password'] },
+      attributes: { exclude: ["password"] },
       include: [
         {
           model: UserAddress,
-          attributes: ['city', 'street', 'houseNumber', 'assignedDistrict', 'assignedCabinet']
-        }
-      ]
+          attributes: [
+            "city",
+            "street",
+            "houseNumber",
+            "assignedDistrict",
+            "assignedCabinet",
+          ],
+        },
+      ],
     });
 
     if (!profile) {
-      throw new Error('Профиль пациента не найден в базе данных');
+      throw new Error("Профиль пациента не найден в базе данных");
     }
 
     // 2. Находим всю историю приёмов с врачами и диагнозами (используем правильный alias PatientAppointments)
@@ -38,25 +46,30 @@ const getProfile = {
       include: [
         {
           model: User,
-          as: 'Doctor',
-          attributes: ['fullName', 'specialty', 'position']
+          as: "Doctor",
+          attributes: ["fullName", "specialty", "position"],
         },
         {
           model: Disease,
-          attributes: ['name', 'code', 'treatmentRecommendations', 'recommendedMedications']
-        }
+          attributes: [
+            "name",
+            "code",
+            "treatmentRecommendations",
+            "recommendedMedications",
+          ],
+        },
       ],
       order: [
-        ['date', 'DESC'],
-        ['time', 'DESC']
-      ]
+        ["date", "DESC"],
+        ["time", "DESC"],
+      ],
     });
 
     return {
       personalInfo: profile,
-      medicalHistory: appointments
+      medicalHistory: appointments,
     };
-  }
+  },
 };
 
 module.exports = getProfile;
