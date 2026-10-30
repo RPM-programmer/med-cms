@@ -1,5 +1,5 @@
 med-cms.sqlite
 .gitignore
 logs/
-tesr.js
+test.js
 .env

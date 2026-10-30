@@ -575,6 +575,30 @@ function createMedRouter(jwtSecret) {
       phone: process.env.ADMIN_PHONE,
     });
   });
+  api.get("/home", async (req, res) => {
+    res.redirect("/med/html/home.html");
+  });
+  api.get("/general", async (req, res) => {
+    res.redirect("/med/html/home.html");
+  });
+  api.get("/h", async (req, res) => {
+    res.redirect("/med/html/home.html");
+  });
+  api.get("/главная", async (req, res) => {
+    res.redirect("/med/html/home.html");
+  });
+  api.get("/Главная", async (req, res) => {
+    res.redirect("/med/html/home.html");
+  });
+  api.get("/Home", async (req, res) => {
+    res.redirect("/med/html/home.html");
+  });
+  api.get("/login", async (req, res) => {
+    res.redirect("/med/html/login.html");
+  });
+  api.get("/вход", async (req, res) => {
+    res.redirect("/med/html/login.html");
+  });
 
   return { web: web, api: api };
 }

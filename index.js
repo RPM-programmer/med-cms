@@ -5,7 +5,7 @@ const chalk = require("chalk-palette");
 const logger = require("custom-color-logs").print;
 const path = require("path");
 const fs = require("fs");
-
+require(path.join(__dirname, "env_init.js"));
 // Оставляем только импорт самого модуля базы данных
 const dbConfig = require(
   path.join(__dirname, "database", "config", "db-init.js"),
@@ -57,20 +57,20 @@ async function init(app) {
     if (!adminExists) {
       console.log(
         logger.ServerMedInfo(
-          "Администратор не найден. Создаю аккаунт по умолчанию...",
+          "Администратор не найден. Создание аккаунта по умолчанию...",
         ),
       );
-      const adminPassword = "SuperAdminPassword2026";
+      const adminPassword = process.env.ADMIN_PASSWORD;
       const hashedPassword = await bcrypt.hash(adminPassword, 10);
       await User.create({
-        email: "admin@medcms.ru",
+        email: process.env.ADMIN_GMAIL,
         password: hashedPassword,
         fullName: "Главный Администратор",
         role: "admin",
         specialty: null,
       });
       console.log(
-        logger.ServerMedInfo(`Аккаунт суперадмина успешно создан in SQLite!`),
+        logger.ServerMedInfo(`Аккаунт суперадмина успешно создан in SQLite.`),
       );
     } else {
       console.log(
