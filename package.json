@@ -1,6 +1,6 @@
 {
   "name": "med-cms",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Медицинская мультитендантная CMS на Express и Sequelize (SQLite3) с системой ролей и автоматическим расчетом участков, а также защитой данных",
   "main": "index.js",
   "types": "index.d.ts",
