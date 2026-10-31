@@ -11,7 +11,10 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   try {
     const response = await fetch("/med/api/auth/login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Bypass-Tunnel-Reminder": "true",
+      },
       body: JSON.stringify({ email, password }),
     });
 
@@ -42,7 +45,10 @@ document
     try {
       const response = await fetch("/med/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Bypass-Tunnel-Reminder": "true",
+        },
         body: JSON.stringify({ email, password, fullName }),
       });
 

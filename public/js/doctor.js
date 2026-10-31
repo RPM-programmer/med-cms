@@ -3,17 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
   loadDiseasesCatalog();
   loadDoctorProfile();
 });
-
 async function loadDiseasesCatalog() {
   try {
-    const res = await fetch("/med/api/doctor/diseases-list");
+    const res = await fetch("/med/api/doctor/diseases-list", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await res.json();
-
     const select = document.getElementById("examDisease");
-
     select.innerHTML =
       '<option value="">-- Выберите диагноз из справочника МКБ --</option>';
-
     if (result.success && result.data.length > 0) {
       result.data.forEach((disease) => {
         const opt = document.createElement("option");
@@ -32,15 +32,16 @@ async function loadDiseasesCatalog() {
     console.error("❌ Ошибка при получении справочника болезней:", err);
   }
 }
-
 async function loadSchedule() {
   try {
-    const res = await fetch("/med/api/doctor/schedule");
+    const res = await fetch("/med/api/doctor/schedule", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const data = await res.json();
-
     const list = document.getElementById("scheduleList");
     list.innerHTML = "";
-
     if (data.success && data.schedule && data.schedule.length > 0) {
       data.schedule.forEach((ap) => {
         const li = document.createElement("li");
@@ -55,12 +56,9 @@ async function loadSchedule() {
     console.error("Ошибка загрузки расписания:", err);
   }
 }
-
 document.getElementById("examForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-
   const selectedDiseaseId = document.getElementById("examDisease").value;
-
   const payload = {
     appointmentId: document.getElementById("activeAppointmentId").value,
     complaints: document.getElementById("examComplaints").value,
@@ -68,14 +66,15 @@ document.getElementById("examForm").addEventListener("submit", async (e) => {
     doctorNotes: document.getElementById("examNotes").value,
     diseaseId: selectedDiseaseId ? parseInt(selectedDiseaseId, 10) : null,
   };
-
   try {
     const res = await fetch("/med/api/doctor/complete-examination", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Bypass-Tunnel-Reminder": "true",
+      },
       body: JSON.stringify(payload),
     });
-
     const result = await res.json();
     if (result.success) {
       alert(
@@ -91,7 +90,6 @@ document.getElementById("examForm").addEventListener("submit", async (e) => {
     alert("Ошибка сети при отправке данных осмотра");
   }
 });
-
 function startExamination(appointmentId, patientName) {
   document.getElementById("examBlock").classList.remove("hidden");
   document.getElementById("activeAppointmentId").value = appointmentId;
@@ -99,12 +97,21 @@ function startExamination(appointmentId, patientName) {
 }
 
 async function logout() {
-  await fetch("/med/api/auth/logout", { method: "POST" });
+  await fetch("/med/api/auth/logout", {
+    method: "POST",
+    headers: {
+      "Bypass-Tunnel-Reminder": "true",
+    },
+  });
   window.location.href = "/med/html/login.html";
 }
 async function loadDoctorProfile() {
   try {
-    const res = await fetch("/med/api/doctor/me");
+    const res = await fetch("/med/api/doctor/me", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await res.json();
     if (result.success && result.doctor) {
       document.getElementById("doctorName").textContent =
@@ -116,28 +123,26 @@ async function loadDoctorProfile() {
     console.error("Ошибка загрузки профиля сотрудника:", err);
   }
 }
-
 function togglePasswordModal() {
   const modal = document.getElementById("passwordModal");
   modal.classList.toggle("hidden");
   document.getElementById("changePasswordForm").reset();
 }
-
 document
   .getElementById("changePasswordForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-
     const oldPassword = document.getElementById("oldPassword").value;
     const newPassword = document.getElementById("newPassword").value;
-
     try {
       const response = await fetch("/med/api/auth/change-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Bypass-Tunnel-Reminder": "true",
+        },
         body: JSON.stringify({ oldPassword, newPassword }),
       });
-
       const result = await response.json();
       if (result.success) {
         alert("Ваш пароль успешно изменен в базе данных SQLite!");

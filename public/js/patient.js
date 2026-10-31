@@ -2,26 +2,26 @@ document.addEventListener("DOMContentLoaded", () => {
   loadPatientData();
   loadDoctorsForBooking();
 });
-
 async function loadPatientData() {
   try {
-    const response = await fetch("/med/api/patient/me");
+    const response = await fetch("/med/api/patient/me", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await response.json();
 
     if (!result.success) {
-      // ИСПРАВЛЕНИЕ: Читаем result.error (как отдает бэкенд), либо result.message
       const errorText = result.error || result.message || "Неизвестная ошибка";
       alert("Ошибка загрузки данных: " + errorText);
-      window.location.href = "/med/med-login"; // Перенаправляем на правильный веб-роут входа
+      window.location.href = "/med/med-login";
       return;
     }
-
     const data = result.data;
     document.getElementById("patientName").textContent =
       data.personalInfo.fullName;
     document.getElementById("patientEmail").textContent =
       data.personalInfo.email;
-
     const districtInfo = document.getElementById("districtInfo");
     if (data.personalInfo.UserAddress) {
       const addr = data.personalInfo.UserAddress;
@@ -34,10 +34,8 @@ async function loadPatientData() {
       document.getElementById("addrStreet").value = addr.street;
       document.getElementById("addrHouse").value = addr.houseNumber;
     }
-
     const historyContainer = document.getElementById("medicalHistoryList");
     historyContainer.innerHTML = "";
-
     if (data.medicalHistory && data.medicalHistory.length > 0) {
       data.medicalHistory.forEach((record) => {
         const card = document.createElement("div");
@@ -77,7 +75,6 @@ async function loadPatientData() {
     alert("Критическая ошибка фронтенда при разборе JSON");
   }
 }
-
 document.getElementById("addressForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const payload = {
@@ -88,7 +85,10 @@ document.getElementById("addressForm").addEventListener("submit", async (e) => {
   try {
     const response = await fetch("/med/api/patient/address", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Bypass-Tunnel-Reminder": "true",
+      },
       body: JSON.stringify(payload),
     });
     const result = await response.json();
@@ -104,16 +104,22 @@ document.getElementById("addressForm").addEventListener("submit", async (e) => {
     alert("Ошибка сети при отправке адреса");
   }
 });
-
 async function logout() {
-  // ИСПРАВЛЕНИЕ: Исправлен путь логаута на абсолютный /med/api
-  await fetch("/med/api/auth/logout", { method: "POST" });
+  await fetch("/med/api/auth/logout", {
+    method: "POST",
+    headers: {
+      "Bypass-Tunnel-Reminder": "true",
+    },
+  });
   window.location.href = "/med/med-login";
 }
-
 async function loadDoctorsForBooking() {
   try {
-    const response = await fetch("/med/api/patient/doctors-list");
+    const response = await fetch("/med/api/patient/doctors-list", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await response.json();
     const select = document.getElementById("bookingDoctor");
     select.innerHTML = '<option value="">-- Выберите врача --</option>';
@@ -133,7 +139,6 @@ async function loadDoctorsForBooking() {
     console.error("Ошибка загрузки врачей:", err);
   }
 }
-
 document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const payload = {
@@ -144,7 +149,10 @@ document.getElementById("bookingForm").addEventListener("submit", async (e) => {
   try {
     const response = await fetch("/med/api/patient/book", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Bypass-Tunnel-Reminder": "true",
+      },
       body: JSON.stringify(payload),
     });
     const result = await response.json();

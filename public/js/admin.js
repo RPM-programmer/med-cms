@@ -11,7 +11,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Базовая статистика верхних карточек
 async function loadDashboardStats() {
   try {
-    const response = await fetch("/med/api/admin/stats");
+    const response = await fetch("/med/api/admin/stats", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await response.json();
     if (!result.success) {
       alert("Ошибка доступа к админ-панели: " + result.message);
@@ -32,7 +36,11 @@ async function loadDashboardStats() {
 // Загрузка клиник в форму №2 (Создание сотрудника)
 async function loadClinicsDropdown() {
   try {
-    const response = await fetch("/med/api/admin/list-clinics");
+    const response = await fetch("/med/api/admin/list-clinics", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await response.json();
     const select = document.getElementById("staffClinic");
     if (!select) return;
@@ -56,7 +64,11 @@ async function loadClinicsForDistrictsSelect() {
   const select = document.getElementById("distClinicId");
   if (!select) return;
   try {
-    const response = await fetch("/med/api/admin/list-clinics");
+    const response = await fetch("/med/api/admin/list-clinics", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await response.json();
     select.innerHTML =
       '<option value="">-- Выберите медицинское учреждение --</option>';
@@ -81,7 +93,11 @@ async function loadStaffForDistrictsSelect() {
   const select = document.getElementById("distDoctor");
   if (!select) return;
   try {
-    const response = await fetch("/med/api/admin/list-staff");
+    const response = await fetch("/med/api/admin/list-staff", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await response.json();
     select.innerHTML =
       '<option value="">-- Выберите сотрудника из базы данных --</option>';
@@ -110,7 +126,11 @@ async function renderLiveDistrictsTable() {
   const container = document.getElementById("liveDistrictsTableBox");
   if (!container) return;
   try {
-    const res = await fetch("/med/api/admin/list-districts");
+    const res = await fetch("/med/api/admin/list-districts", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await res.json();
     if (result.success && result.data && result.data.length > 0) {
       let html = `
@@ -168,6 +188,7 @@ document.getElementById("clinicForm").addEventListener("submit", async (e) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Bypass-Tunnel-Reminder": "true",
       },
       body: JSON.stringify(payload),
     });
@@ -209,7 +230,10 @@ document.getElementById("staffForm").addEventListener("submit", async (e) => {
   try {
     const response = await fetch("/med/api/admin/staff", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Bypass-Tunnel-Reminder": "true",
+      },
       body: JSON.stringify(payload),
     });
     const result = await response.json();
@@ -238,7 +262,10 @@ document.getElementById("newsForm").addEventListener("submit", async (e) => {
   try {
     const response = await fetch("/med/api/admin/news", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Bypass-Tunnel-Reminder": "true",
+      },
       body: JSON.stringify(payload),
     });
     const result = await response.json();
@@ -273,7 +300,10 @@ document
     try {
       const response = await fetch("/med/api/admin/districts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Bypass-Tunnel-Reminder": "true",
+        },
         body: JSON.stringify(payload),
       });
       const result = await response.json();
@@ -297,7 +327,11 @@ async function viewClinicsTable() {
   title.textContent = " 🏥 Реестр медицинских учреждений системы";
   content.innerHTML = "Загрузка таблицы...";
   try {
-    const res = await fetch("/med/api/admin/list-clinics");
+    const res = await fetch("/med/api/admin/list-clinics", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await res.json();
     if (result.success && result.data.length > 0) {
       let html =
@@ -322,7 +356,11 @@ async function viewStaffTable() {
   title.textContent = "👨‍⚕️ Зарегистрированный медицинский персонал";
   content.innerHTML = "Загрузка таблицы...";
   try {
-    const res = await fetch("/med/api/admin/list-staff");
+    const res = await fetch("/med/api/admin/list-staff", {
+      headers: {
+        "Bypass-Tunnel-Reminder": "true",
+      },
+    });
     const result = await res.json();
     if (result.success && result.data.length > 0) {
       let html = `<table><thead><tr><th>ID Сотрудника</th><th>ФИО</th><th>Email</th><th>Должность</th><th>Специализация</th><th>Место работы</th></tr></thead><tbody>`;
@@ -358,6 +396,11 @@ async function viewStaffTable() {
   }
 }
 async function logout() {
-  await fetch("/med/api/auth/logout", { method: "POST" });
-  window.location.href = "/med/med-login";
+  await fetch("/med/api/auth/logout", {
+    method: "POST",
+    headers: {
+      "Bypass-Tunnel-Reminder": "true",
+    },
+  });
+  window.location.href = "/med/html/login.html";
 }
