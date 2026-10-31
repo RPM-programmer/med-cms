@@ -6,6 +6,7 @@ const logger = require("custom-color-logs").print;
 const path = require("path");
 const fs = require("fs");
 require(path.join(__dirname, "env_init.js"));
+
 // Оставляем только импорт самого модуля базы данных
 const dbConfig = require(
   path.join(__dirname, "database", "config", "db-init.js"),
@@ -97,6 +98,8 @@ async function init(app) {
   rout.use("/med", r_web);
   rout.use("/med/api", r_api);
   app.use("/", rout);
+  console.log(logger.ServerMedInfo("Роуты подключены"));
+  require(path.join(__dirname, "check_env.js"));
 }
 
 module.exports = init;
