@@ -32,7 +32,7 @@
   "license": "ICS",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "chalk-palette": "^4.1.0",
+    "chalk-palette": "^4.1.1",
     "cookie-parser": "^1.4.6",
     "custom-color-logs": "^3.2.2",
     "dotenv": "^18.0.9",
